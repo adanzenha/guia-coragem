@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Escada da Coragem">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f31f.png">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%237C5CBF'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E%E2%AD%90%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -557,12 +557,10 @@ function playNotifSound() {
 </div>
 
 <script>
-// Register Service Worker
+// Unregister any old service workers to prevent caching issues
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js', { scope: '/guia-coragem/' })
-      .then(reg => console.log('SW registrado:', reg.scope))
-      .catch(err => console.log('SW erro:', err));
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
   });
 }
 
@@ -2098,13 +2096,13 @@ let inactivityTimer, countdownTimer, inactivitySeconds = 0;
 const INACTIVITY_LIMIT = 30 * 60; // 30 min
 const WARNING_AT = 60; // show warning 60s before
 
-function resetInactivity() {
+window.resetInactivity = function() {
   inactivitySeconds = 0;
   document.getElementById('inactivityBanner').style.display = 'none';
   clearTimeout(inactivityTimer);
   clearInterval(countdownTimer);
   inactivityTimer = setTimeout(showInactivityWarning, (INACTIVITY_LIMIT - WARNING_AT) * 1000);
-}
+};
 
 function showInactivityWarning() {
   let secs = WARNING_AT;
