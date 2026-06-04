@@ -888,30 +888,6 @@ window.fazerLogin = async function(lembrar) {
   }
 }
 
-  try {
-    const snap = await db.collection('clientes').doc(code).get();
-    if (!snap.exists()) {
-      document.getElementById('loginError').style.display = 'block';
-      return;
-    }
-    currentUser = 'cliente';
-    currentCode = code;
-    clienteData = snap.data();
-    if (document.getElementById('lembrarLogin')?.checked) {
-      localStorage.setItem('savedCode', code);
-    }
-    document.getElementById('loginScreen').classList.remove('show');
-    initCliente();
-    listenCliente(code);
-    listenChat(code);
-  } catch(e) {
-    document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
-    document.getElementById('loginError').style.display = 'block';
-  }
-};
-
-document.getElementById('loginCode').addEventListener('keydown', e => { if(e.key==='Enter') window.fazerLogin(); });
-
 // ── CLIENTE UI ───────────────────────────────────────
 function listenCliente(code) {
   if (unsubscribe) unsubscribe();
