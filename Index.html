@@ -464,6 +464,22 @@ function playNotifSound() {
   <div class="loading-sub">Conectando ao banco de dados</div>
 </div>
 
+<!-- SAFETY NET: runs outside module, guarantees loading screen is removed -->
+<script>
+(function() {
+  function forceShowLogin() {
+    var ld = document.getElementById('loadingScreen');
+    var ls = document.getElementById('loginScreen');
+    if (ld) ld.style.display = 'none';
+    if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
+  }
+  // After 5s, force show login no matter what
+  setTimeout(forceShowLogin, 5000);
+  // Also expose globally so module can call it
+  window._forceShowLogin = forceShowLogin;
+})();
+</script>
+
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box" id="loginBox">
@@ -2388,23 +2404,10 @@ const savedCode = localStorage.getItem('savedCode');
 
 // Startup
 function showLoginScreen() {
-  try {
-    hideLoading();
-    setTimeout(() => {
-      const ls = document.getElementById('loginScreen');
-      if (ls) {
-        ls.style.display = 'flex';
-        ls.style.opacity = '1';
-        ls.classList.add('show');
-      }
-    }, 450); // wait for hideLoading animation
-  } catch(e) {
-    // fallback - force show
-    const ls = document.getElementById('loginScreen');
-    const ld = document.getElementById('loadingScreen');
-    if (ld) ld.style.display = 'none';
-    if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
-  }
+  const ld = document.getElementById('loadingScreen');
+  const ls = document.getElementById('loginScreen');
+  if (ld) ld.style.display = 'none';
+  if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
 }
 
 try {
@@ -2426,16 +2429,7 @@ try {
   showLoginScreen();
 }
 
-// Safety net — after 3s force show login no matter what
-setTimeout(() => {
-  const ld = document.getElementById('loadingScreen');
-  const ls = document.getElementById('loginScreen');
-  if (ld && ld.style.display !== 'none') {
-    console.warn('Safety net triggered');
-    ld.style.display = 'none';
-    if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
-  }
-}, 3000);
+
 </script>
 </body>
 </html>
