@@ -306,6 +306,23 @@
   .reply-badge { background: var(--teal-pale); border: 1px solid var(--teal); border-radius: 8px; padding: 6px 10px; font-size: 11px; color: var(--teal); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
   .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); display: inline-block; margin-left: 4px; animation: pulse 1.5s infinite; }
 </style>
+<script>
+// Notification sound
+function playNotifSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.setValueAtTime(520, ctx.currentTime);
+    o.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.3, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    o.start(ctx.currentTime);
+    o.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+</script>
 </head>
 <body>
 
@@ -330,7 +347,7 @@
     <button class="login-btn" onclick="fazerLogin()">✨ Entrar</button>
     <div class="login-error" id="loginError">Código não encontrado. Verifique com a psicóloga.</div>
     <hr class="login-divider">
-    <div class="login-code-hint">Psicóloga? Use o código: <strong>psicologa-admin</strong></div>
+    <div class="login-code-hint">Psicóloga? Use o código exclusivo fornecido pela administração.</div>
   </div>
 </div>
 
@@ -432,7 +449,7 @@ window.fazerLogin = async function(lembrar) {
   if (!code) return;
   document.getElementById('loginError').style.display = 'none';
 
-  if (code === 'psicologa-admin') {
+  if (code === 'bieberlovato98') {
     currentUser = 'psicologa';
     currentCode = 'admin';
     if (lembrar || document.getElementById('lembrarLogin')?.checked) {
@@ -660,6 +677,8 @@ async function initPsicologa() {
         <div style="margin-bottom:12px"><label class="note-label">Código de acesso</label><input class="note-area" id="novoCodigo" placeholder="Ex: familia-silva (sem espaços)" style="min-height:unset;height:44px"></div>
         <div style="margin-bottom:12px"><label class="note-label">Nome da criança</label><input class="note-area" id="novoCrianca" placeholder="Ex: João" style="min-height:unset;height:44px"></div>
         <div style="margin-bottom:12px"><label class="note-label">Idade da criança</label><input class="note-area" id="novaIdade" placeholder="Ex: 5 anos" style="min-height:unset;height:44px"></div>
+        <div style="margin-bottom:12px"><label class="note-label">📅 Próxima sessão</label><input type="datetime-local" class="note-area" id="novaProximaSessao" style="min-height:unset;height:44px"></div>
+        <div style="margin-bottom:12px"><label class="note-label">📸 Foto da criança (URL ou deixe em branco)</label><input class="note-area" id="novaFoto" placeholder="Cole o link de uma foto (opcional)" style="min-height:unset;height:44px"></div>
         <div class="btn-row"><button class="btn btn-primary" onclick="criarCliente()">✅ Criar cliente</button></div>
       </div>
     </section>
@@ -681,7 +700,7 @@ function listenClientes() {
         const chat = data.chat || [];
         const lastMsg = chat[chat.length - 1];
         if (lastMsg && lastMsg.remetente === 'familia' && lastMsg.ts > (Date.now() - 10000)) {
-          showToast('💬 Nova mensagem de ' + (data.nomeFamilia || change.doc.id) + '!');
+          showToast('💬 Nova mensagem de ' + (data.nomeFamilia || change.doc.id) + '!'); playNotifSound();
           // Update open modal if matches
           const openChat = document.getElementById('psiChatWrap-' + change.doc.id);
           if (openChat) renderPsiChat(change.doc.id, chat);
@@ -714,9 +733,13 @@ function renderClientesLista(snap) {
         <span class="cliente-nome">👨‍👩‍👧 ${data.nomeFamilia || d.id}${hasUnread ? '<span class="unread-dot"></span>' : ''}</span>
         <span class="cliente-code">${d.id}</span>
       </div>
-      <div style="font-size:12px;color:var(--gray);margin-bottom:8px">
-        👧 ${data.nomeCrianca || '—'} ${data.idade ? '· '+data.idade : ''}
-        ${lastMsg ? ` · 💬 ${lastMsg.remetente === 'familia' ? '<strong>Nova msg!</strong>' : 'Respondido'}` : ''}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        ${data.foto ? `<img src="${data.foto}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--purple-pale)">` : '<div style="width:36px;height:36px;border-radius:50%;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:18px">👧</div>'}
+        <div>
+          <div style="font-size:12px;color:var(--gray)">👧 ${data.nomeCrianca || '—'} ${data.idade ? '· '+data.idade : ''}</div>
+          ${data.proximaSessao ? `<div style="font-size:11px;color:var(--teal);font-weight:700">📅 ${new Date(data.proximaSessao).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
+          ${lastMsg ? `<div style="font-size:11px">${lastMsg.remetente === 'familia' ? '💬 <strong style="color:var(--pink)">Nova mensagem!</strong>' : '💬 Respondido'}</div>` : ''}
+        </div>
       </div>
       <div class="cliente-prog"><div class="cliente-prog-fill" style="width:${pct}%"></div></div>
       <div class="cliente-meta"><span>Progresso: ${done}/8 degraus</span><span>${pct.toFixed(0)}%</span></div>`;
@@ -761,13 +784,20 @@ async function carregarClientes() {
 }
 
 window.verCliente = function(code, data) {
+  window.clientesCache[code] = data;
   const notas = data.notas || [];
   const degraus = data.degraus || [];
   let html = `
     <div class="modal-overlay open" id="clienteDetailModal" onclick="if(event.target.id==='clienteDetailModal'){document.getElementById('clienteDetailModal').remove();if(window._modalUnsub){window._modalUnsub();window._modalUnsub=null;}}"">
     <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:40px">
       <h3>👨‍👩‍👧 ${data.nomeFamilia || code}</h3>
-      <p>👧 ${data.nomeCrianca||'—'} · Código: <strong>${code}</strong></p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        ${data.foto ? `<img src="${data.foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--purple-pale)">` : '<div style="width:48px;height:48px;border-radius:50%;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:24px">👧</div>'}
+        <div>
+          <p style="font-size:13px;margin:0">👧 ${data.nomeCrianca||'—'} · Código: <strong>${code}</strong></p>
+          ${data.proximaSessao ? `<p style="font-size:12px;color:var(--teal);font-weight:700;margin:3px 0 0">📅 Próxima sessão: ${new Date(data.proximaSessao).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</p>` : ''}
+        </div>
+      </div>
       <div style="margin:12px 0">
         <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px"><span>Progresso</span><span>${degraus.length}/8</span></div>
         <div class="progress-bar"><div class="progress-fill" style="width:${(degraus.length/8)*100}%"></div></div>
@@ -800,8 +830,16 @@ window.verCliente = function(code, data) {
           <button class="chat-send-btn" onclick="responderFamilia('${code}')">➤</button>
         </div>
       </div>
+      <div style="margin-top:14px">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📅 Editar próxima sessão</div>
+        <div style="display:flex;gap:8px">
+          <input type="datetime-local" id="editSessao-${code}" class="note-area" style="min-height:unset;height:40px;flex:1" value="${data.proximaSessao||''}">
+          <button class="btn btn-teal" style="padding:8px 14px;border-radius:10px;background:var(--teal);color:white;border:none;cursor:pointer" onclick="salvarProximaSessao('${code}')">💾</button>
+        </div>
+      </div>
       <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="copiarLinkCliente('${code}');document.getElementById('clienteDetailModal').remove()" style="flex:1">📤 Copiar link</button>
+        <button class="btn btn-primary" onclick="copiarLinkCliente('${code}');document.getElementById('clienteDetailModal').remove();if(window._modalUnsub){window._modalUnsub();window._modalUnsub=null;}" style="flex:1">📤 Copiar link</button>
+        <button class="btn btn-outline" onclick="imprimirRelatorio('${code}',clientesCache['${code}'])" style="flex:1">🖨️ Relatório</button>
         <button class="btn btn-danger" onclick="excluirCliente('${code}')" style="flex:0">🗑️</button>
       </div>
       <button class="modal-close" onclick="document.getElementById('clienteDetailModal').remove();if(window._modalUnsub){window._modalUnsub();window._modalUnsub=null;}">Fechar</button>
@@ -845,7 +883,7 @@ window.criarCliente = async function() {
   const idade = document.getElementById('novaIdade')?.value?.trim() || '';
   if (!nome || !codigo) { showToast('⚠️ Preencha nome e código!'); return; }
   try {
-    await setDoc(doc(db, 'clientes', codigo), { nomeFamilia: nome, nomeCrianca: crianca, idade, degraus: [], notas: [], criadoEm: new Date().toISOString() });
+    const proximaSessao = document.getElementById('novaProximaSessao')?.value || ''; const foto = document.getElementById('novaFoto')?.value || ''; await setDoc(doc(db, 'clientes', codigo), { nomeFamilia: nome, nomeCrianca: crianca, idade, proximaSessao, foto, degraus: [], notas: [], chat: [], criadoEm: new Date().toISOString() });
     showToast('✅ Cliente criado!');
     const link = window.location.href.split('?')[0] + '?code=' + codigo;
     document.getElementById('shareLinkBox').textContent = link;
@@ -1112,6 +1150,67 @@ function confetti() {
     setTimeout(()=>d.remove(),3000);
   }
 }
+
+// ── CACHE CLIENTES ───────────────────────────────────
+window.clientesCache = {};
+
+// ── SALVAR PRÓXIMA SESSÃO ─────────────────────────────
+window.salvarProximaSessao = async function(code) {
+  const val = document.getElementById('editSessao-' + code)?.value;
+  if (!val) return;
+  await updateDoc(doc(db, 'clientes', code), { proximaSessao: val });
+  showToast('📅 Próxima sessão salva!');
+};
+
+// ── IMPRIMIR RELATÓRIO ────────────────────────────────
+window.imprimirRelatorio = function(code, data) {
+  if (!data) return;
+  const notas = data.notas || [];
+  const degraus = data.degraus || [];
+  const chat = data.chat || [];
+  const win = window.open('', '_blank');
+  win.document.write(`
+    <!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Relatório — ${data.nomeFamilia||code}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:32px;color:#333;max-width:800px;margin:0 auto}
+      h1{color:#7C5CBF;border-bottom:2px solid #7C5CBF;padding-bottom:8px}
+      h2{color:#3BAFB8;margin-top:24px}
+      .badge{display:inline-block;background:#F0EAFB;color:#7C5CBF;padding:3px 10px;border-radius:50px;font-size:12px;font-weight:700;margin:2px}
+      .nota{background:#F7F5FF;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid #7C5CBF}
+      .nota-date{font-size:11px;color:#666;font-weight:700}
+      .conquista{background:#FFF8E7;border-radius:6px;padding:6px 10px;margin-top:6px;font-size:13px}
+      table{width:100%;border-collapse:collapse;margin-top:10px}
+      th{background:#7C5CBF;color:white;padding:8px;font-size:13px;text-align:left}
+      td{padding:8px;border-bottom:1px solid #eee;font-size:13px}
+      tr:nth-child(even){background:#F7F5FF}
+      .footer{margin-top:40px;font-size:11px;color:#999;text-align:center;border-top:1px solid #eee;padding-top:16px}
+      @media print{button{display:none}}
+    </style></head><body>
+    <button onclick="window.print()" style="background:#7C5CBF;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;margin-bottom:20px">🖨️ Imprimir</button>
+    <h1>📋 Relatório Terapêutico</h1>
+    <p><strong>Família:</strong> ${data.nomeFamilia||code}</p>
+    <p><strong>Criança:</strong> ${data.nomeCrianca||'—'} ${data.idade?'('+data.idade+')':''}</p>
+    <p><strong>Início:</strong> ${data.criadoEm ? new Date(data.criadoEm).toLocaleDateString('pt-BR') : '—'}</p>
+    ${data.proximaSessao ? `<p><strong>Próxima sessão:</strong> ${new Date(data.proximaSessao).toLocaleString('pt-BR')}</p>` : ''}
+    <h2>🪜 Progresso na Escada da Coragem</h2>
+    <p><strong>${degraus.length}/8 degraus conquistados (${Math.round(degraus.length/8*100)}%)</strong></p>
+    <table>
+      <tr><th>#</th><th>Degrau</th><th>Status</th></tr>
+      ${['Olhar foto do banheiro','Entrar no banheiro vestido(a)','Sentar no vaso com roupa','Sentar sem roupa, sem urinar','Tentar urinar c/ porta aberta','Urinar com cuidador ao lado','Urinar sozinho(a), porta entreaberta','Urinar sozinho(a), porta fechada'].map((d,i)=>`<tr><td>${i+1}</td><td>${d}</td><td>${degraus.includes(i)?'✅ Conquistado':'⏳ Pendente'}</td></tr>`).join('')}
+    </table>
+    <h2>📝 Anotações da Família (${notas.length})</h2>
+    ${notas.length ? notas.map(n=>`
+      <div class="nota">
+        <div class="nota-date">${n.data||''} ${n.nivel?'· Nível '+n.nivel:''}</div>
+        ${n.texto?`<p style="margin:5px 0 0">${n.texto}</p>`:''}
+        ${n.conquista?`<div class="conquista">⭐ ${n.conquista}</div>`:''}
+      </div>`).join('') : '<p style="color:#999">Nenhuma anotação registrada.</p>'}
+    <div class="footer">Gerado em ${new Date().toLocaleString('pt-BR')} · Sistema Escada da Coragem · Uso exclusivo do profissional</div>
+    </body></html>`);
+  win.document.close();
+};
 
 // ── PSICÓLOGA CHAT ───────────────────────────────────
 function renderPsiChat(code, msgs) {
