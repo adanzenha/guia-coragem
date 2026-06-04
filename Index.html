@@ -627,16 +627,97 @@ let currentCode = null;
 let clienteData = {};
 let unsubscribe = null;
 
-const DEGRAUS = [
-  { title: "Olhar foto do banheiro", sub: "Nível 1-2", color: "#4CAF7D" },
-  { title: "Entrar no banheiro vestido(a)", sub: "Nível 2-3", color: "#7CB342" },
-  { title: "Sentar no vaso com roupa", sub: "Nível 3-4", color: "#FFB830" },
-  { title: "Sentar sem roupa, sem urinar", sub: "Nível 4-5", color: "#FF8C42" },
-  { title: "Tentar urinar c/ porta aberta", sub: "Nível 5-6", color: "#F06292" },
-  { title: "Urinar com cuidador ao lado", sub: "Nível 6-7", color: "#BA68C8" },
-  { title: "Urinar sozinho(a), porta entreaberta", sub: "Nível 7-8", color: "#7C5CBF" },
-  { title: "Urinar sozinho(a), porta fechada 🏆", sub: "META!", color: "#3BAFB8" },
-];
+// ── PROTOCOLOS TCC ───────────────────────────────────
+const PROTOCOLOS = {
+  vaso: {
+    nome: "Medo do Vaso Sanitário",
+    emoji: "🚽",
+    cor: "#7C5CBF",
+    descricao: "Protocolo TCC para superar o medo de urinar no vaso sanitário",
+    degraus: [
+      { title: "Olhar foto do banheiro", sub: "Nível 1-2", color: "#4CAF7D" },
+      { title: "Entrar no banheiro vestido(a)", sub: "Nível 2-3", color: "#7CB342" },
+      { title: "Sentar no vaso com roupa", sub: "Nível 3-4", color: "#FFB830" },
+      { title: "Sentar sem roupa, sem urinar", sub: "Nível 4-5", color: "#FF8C42" },
+      { title: "Tentar urinar c/ porta aberta", sub: "Nível 5-6", color: "#F06292" },
+      { title: "Urinar com cuidador ao lado", sub: "Nível 6-7", color: "#BA68C8" },
+      { title: "Urinar sozinho(a), porta entreaberta", sub: "Nível 7-8", color: "#7C5CBF" },
+      { title: "Urinar sozinho(a), porta fechada 🏆", sub: "META!", color: "#3BAFB8" },
+    ],
+    tecnicas: [
+      { emoji: "🦁", title: "Respiração do Leão", desc: "Soltar tensão com diversão!", como: "1. Inspire contando até 4 🤫<br>2. Segure por 2 segundos ⏸<br>3. Expire: <b>'HAAA!'</b> 🦁<br>4. Repita 3 vezes.<br><br><em>💡 Faça junto — fica engraçado!</em>", bg: "var(--teal-pale)" },
+      { emoji: "🧸", title: "Barriga de Bolha", desc: "Respiração com bichinho", como: "1. Coloque o ursinho na barriga<br>2. Respire — barriga sobe = bolha 🫧<br>3. Solte devagar<br>4. Repita 5 vezes.<br><br><em>💡 Quem fizer a maior bolha ganha!</em>", bg: "var(--purple-pale)" },
+      { emoji: "🌈", title: "Lugar Seguro", desc: "Um lugar mágico na imaginação", como: "1. Feche os olhos<br>2. Imagine um lugar incrível<br>3. O que você vê? Cheira? Ouve?<br>4. Fique lá por 1 minuto.<br><br><em>💡 Deixe a criança escolher!</em>", bg: "var(--yellow-pale)" },
+      { emoji: "🖐️", title: "5-4-3-2-1", desc: "Foco no presente", como: "👁️ 5 coisas que <b>vê</b><br>✋ 4 que pode <b>tocar</b><br>👂 3 que <b>ouve</b><br>👃 2 que <b>cheira</b><br>😋 1 que <b>gosta</b><br><br><em>💡 Use no nível 3 ou 4!</em>", bg: "var(--green-pale)" },
+      { emoji: "🍜", title: "Espaguete Mágico", desc: "Relaxamento muscular", como: "1. Fica duro como <b>espaguete cru</b>! 😬<br>2. Vira <b>espaguete cozido</b>! 😌<br>3. Mãos → ombros → rosto → pernas<br>4. Repita 2 vezes.<br><br><em>💡 Faça no tapete antes!</em>", bg: "var(--pink-pale)" },
+      { emoji: "🎵", title: "Música do Xixi", desc: "A música especial da família", como: "1. Criem uma música boba juntos! 🎤<br>2. Cante enquanto senta no vaso<br>3. Qualquer melodia!<br><br><em>💡 Quanto mais engraçada, melhor!</em>", bg: "var(--orange-pale)" },
+    ],
+    orientacoes: {
+      fazer: ["Celebre qualquer tentativa","Fique perto (lado de fora)","Use linguagem encorajadora","Mantenha rotina de horários","Pratique as técnicas junto","Valide o sentimento da criança"],
+      evitar: ["Forçar ou ameaçar","Comparar com outras crianças","Dizer 'não tem nada a temer'","Punir acidentes ou choro","Demonstrar impaciência","Voltar ao pinico sem orientação"],
+    }
+  },
+
+  escuro: {
+    nome: "Medo do Escuro",
+    emoji: "🌙",
+    cor: "#3A2D6B",
+    descricao: "Protocolo TCC para superar o medo do escuro e dormir sozinho(a)",
+    degraus: [
+      { title: "Olhar para foto de quarto escuro", sub: "Nível 1-2", color: "#4CAF7D" },
+      { title: "Ficar no quarto com luz acesa", sub: "Nível 2-3", color: "#7CB342" },
+      { title: "Quarto com luz de abajur fraco", sub: "Nível 3-4", color: "#FFB830" },
+      { title: "Quarto escuro c/ porta aberta", sub: "Nível 4-5", color: "#FF8C42" },
+      { title: "Quarto escuro 5 minutos sozinho(a)", sub: "Nível 5-6", color: "#F06292" },
+      { title: "Adormecer c/ cuidador perto", sub: "Nível 6-7", color: "#BA68C8" },
+      { title: "Adormecer sozinho(a), porta entreaberta", sub: "Nível 7-8", color: "#5C6BC0" },
+      { title: "Dormir sozinho(a) a noite toda 🏆", sub: "META!", color: "#3A2D6B" },
+    ],
+    tecnicas: [
+      { emoji: "🌟", title: "Estrelinha Mágica", desc: "Respiração com estrelinha imaginária", como: "1. Imagine uma estrelinha brilhante à frente<br>2. Inspire e a estrelinha cresce ✨<br>3. Expire e ela brilha ainda mais<br>4. Repita 5 vezes.<br><br><em>💡 Use um projetor de estrelas se tiver!</em>", bg: "var(--purple-pale)" },
+      { emoji: "🧸", title: "Guarda do Ursinho", desc: "O ursinho protege durante a noite", como: "1. Escolha um ursinho especial 'guardião'<br>2. Diga a ele o que está sentindo<br>3. O ursinho fica de vigia enquanto dorme<br><br><em>💡 Crie um ritual de 'passes' de proteção no ursinho!</em>", bg: "var(--yellow-pale)" },
+      { emoji: "🏠", title: "Mapa da Casa", desc: "Conhecer o ambiente no escuro", como: "1. Com luz acesa, explore cada canto do quarto<br>2. Memorize onde tudo está<br>3. Feche os olhos e imagine o quarto<br>4. O escuro não muda os objetos!<br><br><em>💡 Faça virando um jogo de memória!</em>", bg: "var(--teal-pale)" },
+      { emoji: "🎙️", title: "Histórias de Coragem", desc: "Personagens que superaram o medo", como: "1. Crie um personagem corajoso com a criança<br>2. Conte uma história onde ele enfrenta o escuro<br>3. A criança é o herói da história!<br><br><em>💡 Deixe a criança inventar o final!</em>", bg: "var(--green-pale)" },
+      { emoji: "🌙", title: "Conversa com a Lua", desc: "Visualização noturna calmante", como: "1. Olhe pela janela para a lua/estrelas<br>2. 'A lua está de vigia enquanto você dorme'<br>3. Respire devagar olhando para o céu<br><br><em>💡 Funciona muito bem em noites de lua cheia!</em>", bg: "var(--orange-pale)" },
+      { emoji: "🔦", title: "Missão Explorador", desc: "Transformar o medo em aventura", como: "1. Dê uma lanterna pequena para a criança<br>2. 'Você é um explorador do quarto!'<br>3. Explore o quarto no escuro com a lanterna<br>4. Vá reduzindo o uso aos poucos.<br><br><em>💡 Use lanterna de brinquedo colorida!</em>", bg: "var(--pink-pale)" },
+    ],
+    orientacoes: {
+      fazer: ["Manter rotina de dormir consistente","Usar luz noturna de baixa intensidade","Validar o medo sem amplificar","Criar ritual de sono tranquilo","Elogiar cada noite corajosa","Deixar a criança com objeto de conforto"],
+      evitar: ["Deixar TV ou celular para adormecer","Buscar a criança toda vez que chorar","Dizer 'não existe nada no escuro'","Punir o medo ou chamar de frescura","Mudar o quarto para a cama dos pais","Prometer ficar acordado até ela dormir"],
+    }
+  },
+
+  animais: {
+    nome: "Medo de Animais",
+    emoji: "🐾",
+    cor: "#FF8C42",
+    descricao: "Protocolo TCC para superar o medo de animais (cães, gatos, insetos...)",
+    degraus: [
+      { title: "Olhar foto do animal temido", sub: "Nível 1-2", color: "#4CAF7D" },
+      { title: "Assistir vídeo do animal", sub: "Nível 2-3", color: "#7CB342" },
+      { title: "Ver animal real de longe (5m+)", sub: "Nível 3-4", color: "#FFB830" },
+      { title: "Ficar no mesmo ambiente (2m)", sub: "Nível 4-5", color: "#FF8C42" },
+      { title: "Animal perto com cuidador no colo", sub: "Nível 5-6", color: "#F06292" },
+      { title: "Tocar animal com dedo (1 segundo)", sub: "Nível 6-7", color: "#BA68C8" },
+      { title: "Acariciar animal por 10 segundos", sub: "Nível 7-8", color: "#7C5CBF" },
+      { title: "Interagir livremente com o animal 🏆", sub: "META!", color: "#FF8C42" },
+    ],
+    tecnicas: [
+      { emoji: "📚", title: "Conhecendo o Animal", desc: "Aprender para diminuir o medo", como: "1. Pesquise juntos sobre o animal<br>2. O que ele come? Como se comunica?<br>3. Quando ele morde/ataca? (raramente!)<br>4. O animal também tem medo de pessoas!<br><br><em>💡 Use livros infantis sobre o animal!</em>", bg: "var(--teal-pale)" },
+      { emoji: "🎭", title: "Faz de Conta Animal", desc: "Brincar de ser o animal temido", como: "1. Brinque de imitar o animal com a criança<br>2. 'Como um cachorro faz? Faz junto!'<br>3. Isso humaniza e dessensibiliza o animal<br><br><em>💡 Fantasia ou máscara torna mais divertido!</em>", bg: "var(--yellow-pale)" },
+      { emoji: "🌬️", title: "Respiração Calma", desc: "Controlar a ansiedade na presença do animal", como: "1. Inspire pelo nariz contando 4<br>2. Segure por 2 segundos<br>3. Expire pela boca contando 6<br>4. Repita até sentir mais calmo.<br><br><em>💡 Pratique ANTES de ver o animal!</em>", bg: "var(--purple-pale)" },
+      { emoji: "🦸", title: "Herói Corajoso", desc: "Criar um alter-ego corajoso", como: "1. Invente um super-herói que não tem medo<br>2. Dê um nome e um poder especial<br>3. 'Quando eu fico com medo, viro o [nome]!'<br><br><em>💡 Deixe a criança desenhar o herói!</em>", bg: "var(--green-pale)" },
+      { emoji: "📊", title: "Termômetro do Medo", desc: "Monitorar a ansiedade em tempo real", como: "1. Antes de ver o animal: qual nível 1-5?<br>2. Depois de 2 minutos: qual nível agora?<br>3. Mostre que o nível cai com o tempo!<br><br><em>💡 O gráfico visual motiva muito!</em>", bg: "var(--pink-pale)" },
+      { emoji: "🏆", title: "Sistema de Pontos", desc: "Recompensar cada passo corajoso", como: "1. Defina pontos para cada degrau<br>2. Cada aproximação = pontos extras<br>3. Acumule para um prêmio especial<br><br><em>💡 Deixe a criança escolher o prêmio!</em>", bg: "var(--orange-pale)" },
+    ],
+    orientacoes: {
+      fazer: ["Explicar o comportamento do animal","Modelar comportamento tranquilo com o animal","Reforçar cada pequeno passo","Permitir que a criança dite o ritmo","Criar experiências positivas graduais","Elogiar a coragem mesmo sem tocar"],
+      evitar: ["Forçar contato antes da criança estar pronta","Rir ou minimizar o medo","Dizer 'o animal não morde' sem explicar","Expor subitamente sem preparação","Punir a esquiva ou o choro","Comparar com outras crianças"],
+    }
+  }
+};
+
+const DEGRAUS = PROTOCOLOS.vaso.degraus; // default fallback
 
 const THERMO = [
   { nivel:5, label:"Muito assustado(a)", sub:"Coração acelerado", color:"#E53935", height:"100%", msg:"😱 Pause tudo. Acolha com carinho. Não insista hoje." },
@@ -707,6 +788,8 @@ function updateClienteUI() {
   if (pf) pf.style.width = pct + '%';
   if (pl) pl.textContent = done.length + '/8';
   buildEscada();
+  buildTecnicas();
+  buildOrientacoes();
   renderNotas();
   renderDiario();
   checkCertificado();
@@ -714,8 +797,11 @@ function updateClienteUI() {
 
 function initCliente() {
   const nome = clienteData.nomeFamilia || 'Família';
-  document.getElementById('heroBadge').textContent = '👨‍👩‍👧 ' + nome;
-  document.getElementById('heroDesc').textContent = 'Acompanhe o progresso de ' + (clienteData.nomeCrianca || 'seu filho(a)') + ' aqui.';
+  protocoloAtual = getProtocolo(clienteData);
+  document.getElementById('heroBadge').textContent = protocoloAtual.emoji + ' ' + nome;
+  document.getElementById('heroDesc').textContent = protocoloAtual.descricao + ' — Acompanhe o progresso de ' + (clienteData.nomeCrianca || 'seu filho(a)') + '.';
+  // Update hero gradient
+  document.querySelector('.hero').style.background = `linear-gradient(135deg, ${protocoloAtual.cor} 0%, #3BAFB8 100%)`;
   document.getElementById('heroSection').style.display = 'block';
   document.getElementById('navWrapper').style.display = 'block';
   document.getElementById('mainContent').style.display = 'block';
@@ -783,22 +869,12 @@ function buildClienteSections() {
     <section class="section" id="sec-tecnicas">
       <div class="section-header"><h2>💨 Técnicas de Coping</h2><p>Toque para ver como fazer</p></div>
       <div class="breathing-circle">Respire<br>comigo</div>
-      <div class="tecnicas-grid">
-        <div class="tecnica-card" style="background:var(--teal-pale)" onclick="toggleTecnica(this)"><span class="emoji">🦁</span><h3>Respiração do Leão</h3><p>Soltar tensão com diversão!</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Inspire contando até 4 🤫<br>2. Segure por 2 segundos ⏸<br>3. Expire: <b>"HAAA!"</b> 🦁<br>4. Repita 3 vezes.<br><br><em>💡 Faça junto — fica mais engraçado!</em></div></div>
-        <div class="tecnica-card" style="background:var(--purple-pale)" onclick="toggleTecnica(this)"><span class="emoji">🧸</span><h3>Barriga de Bolha</h3><p>Respiração com o bichinho</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Coloque o ursinho na barriga<br>2. Respire — barriga sobe = bolha 🫧<br>3. Solte devagar — bolha murcha<br>4. Repita 5 vezes.<br><br><em>💡 Quem fizer a maior bolha ganha!</em></div></div>
-        <div class="tecnica-card" style="background:var(--yellow-pale)" onclick="toggleTecnica(this)"><span class="emoji">🌈</span><h3>Lugar Seguro</h3><p>Um lugar mágico na imaginação</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Feche os olhos<br>2. Imagine um lugar incrível<br>3. O que você vê? Cheira? Ouve?<br>4. Fique lá por 1 minuto.<br><br><em>💡 Deixe a criança escolher!</em></div></div>
-        <div class="tecnica-card" style="background:var(--green-pale)" onclick="toggleTecnica(this)"><span class="emoji">🖐️</span><h3>5-4-3-2-1</h3><p>Foco no presente</p><div class="tecnica-expanded">👁️ 5 coisas que <b>vê</b><br>✋ 4 que pode <b>tocar</b><br>👂 3 que <b>ouve</b><br>👃 2 que <b>cheira</b><br>😋 1 que <b>gosta</b><br><br><em>💡 Use no nível 3 ou 4!</em></div></div>
-        <div class="tecnica-card" style="background:var(--pink-pale)" onclick="toggleTecnica(this)"><span class="emoji">🍜</span><h3>Espaguete Mágico</h3><p>Relaxamento muscular</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Fica duro como <b>espaguete cru</b>! 😬<br>2. Agora vira <b>espaguete cozido</b>! 😌<br>3. Mãos → ombros → rosto → pernas<br>4. Repita 2 vezes.<br><br><em>💡 Faça no tapete antes da tentativa!</em></div></div>
-        <div class="tecnica-card" style="background:var(--orange-pale)" onclick="toggleTecnica(this)"><span class="emoji">🎵</span><h3>Música do Xixi</h3><p>A música especial da família</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Criem uma música boba juntos! 🎤<br>2. Cante enquanto senta no vaso<br>3. Pode ser qualquer melodia!<br><br><em>💡 Quanto mais engraçada, melhor!</em></div></div>
-      </div>
+      <div class="tecnicas-grid" id="tecnicasGrid"></div>
     </section>
 
     <section class="section" id="sec-orientacoes">
       <div class="section-header"><h2>📋 Orientações para Pais</h2><p>Como apoiar sem reforçar o medo</p></div>
-      <div class="dos-donts">
-        <div class="do-col"><div class="col-title">✅ Faça isso</div><ul><li>Celebre qualquer tentativa</li><li>Fique perto (lado de fora)</li><li>Use linguagem encorajadora</li><li>Mantenha rotina de horários</li><li>Pratique as técnicas junto</li><li>Valide o sentimento da criança</li></ul></div>
-        <div class="dont-col"><div class="col-title">❌ Evite isso</div><ul><li>Forçar ou ameaçar</li><li>Comparar com outras crianças</li><li>Dizer "não tem nada a temer"</li><li>Punir acidentes ou choro</li><li>Demonstrar impaciência</li><li>Voltar ao pinico sem orientação</li></ul></div>
-      </div>
+      <div class="dos-donts" id="dosDontsGrid"></div>
       <div class="highlight orange"><strong>💬 O que dizer quando a criança recusa</strong>✅ "Tudo bem, a gente tenta de novo daqui a pouco."<br>✅ "Você foi muito corajoso(a) só de tentar."<br>✅ "Esse medo está ficando menor a cada dia."<br>❌ Evite: "Chega disso!" / "Que frescura!"</div>
       <div class="card"><div class="card-accent" style="background:var(--green)"></div>
         <h2>🏆 Sistema de Recompensas</h2>
@@ -926,6 +1002,24 @@ async function initPsicologa() {
       <div class="section-header"><h2>➕ Novo Cliente</h2><p>Criar acesso para uma nova família</p></div>
       <div class="card">
         <h2>👨‍👩‍👧 Dados da Família</h2>
+        <div style="margin-bottom:14px">
+          <label class="note-label">🎯 Protocolo TCC</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px" id="protocoloSelector">
+            <div class="protocolo-opt active" onclick="selecionarProtocolo('vaso',this)" style="background:var(--purple-pale);border:2px solid var(--purple);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s">
+              <div style="font-size:28px">🚽</div>
+              <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--purple);margin-top:4px">Vaso</div>
+            </div>
+            <div class="protocolo-opt" onclick="selecionarProtocolo('escuro',this)" style="background:var(--light);border:2px solid transparent;border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s">
+              <div style="font-size:28px">🌙</div>
+              <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--gray);margin-top:4px">Escuro</div>
+            </div>
+            <div class="protocolo-opt" onclick="selecionarProtocolo('animais',this)" style="background:var(--light);border:2px solid transparent;border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:all 0.2s">
+              <div style="font-size:28px">🐾</div>
+              <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:11px;color:var(--gray);margin-top:4px">Animais</div>
+            </div>
+          </div>
+          <input type="hidden" id="novoProtocolo" value="vaso">
+        </div>
         <div style="margin-bottom:12px"><label class="note-label">Nome da família</label><input class="note-area" id="novoNome" placeholder="Ex: Família Silva" style="min-height:unset;height:44px"></div>
         <div style="margin-bottom:12px"><label class="note-label">Código de acesso</label><input class="note-area" id="novoCodigo" placeholder="Ex: familia-silva (sem espaços)" style="min-height:unset;height:44px"></div>
         <div style="margin-bottom:12px"><label class="note-label">Nome da criança</label><input class="note-area" id="novoCrianca" placeholder="Ex: João" style="min-height:unset;height:44px"></div>
@@ -1202,7 +1296,7 @@ window.criarCliente = async function() {
   const idade = document.getElementById('novaIdade')?.value?.trim() || '';
   if (!nome || !codigo) { showToast('⚠️ Preencha nome e código!'); return; }
   try {
-    const proximaSessao = document.getElementById('novaProximaSessao')?.value || ''; const foto = document.getElementById('novaFoto')?.value || ''; const cid = document.getElementById('novoCID')?.value || ''; const obsClinica = document.getElementById('novaObs')?.value || ''; await setDoc(doc(db, 'clientes', codigo), { nomeFamilia: nome, nomeCrianca: crianca, idade, proximaSessao, foto, cid, obsClinica, arquivado: false, degraus: [], notas: [], chat: [], criadoEm: new Date().toISOString() });
+    const protocolo = document.getElementById('novoProtocolo')?.value || 'vaso'; const proximaSessao = document.getElementById('novaProximaSessao')?.value || ''; const foto = document.getElementById('novaFoto')?.value || ''; const cid = document.getElementById('novoCID')?.value || ''; const obsClinica = document.getElementById('novaObs')?.value || ''; await setDoc(doc(db, 'clientes', codigo), { nomeFamilia: nome, nomeCrianca: crianca, idade, protocolo, proximaSessao, foto, cid, obsClinica, arquivado: false, degraus: [], notas: [], chat: [], criadoEm: new Date().toISOString() });
     showToast('✅ Cliente criado!');
     const link = window.location.href.split('?')[0] + '?code=' + codigo;
     document.getElementById('shareLinkBox').textContent = link;
@@ -1245,9 +1339,8 @@ function buildEscada() {
   const el = document.getElementById('escadaEl');
   if (!el) return;
   const done = clienteData.degraus || [];
-  // Use custom metas if available
-  const metas = clienteData.metasDegraus;
-  const degrausToUse = metas ? DEGRAUS.map((d,i) => ({...d, title: metas[i]||d.title})) : DEGRAUS;
+  // Use protocol degraus with optional custom metas
+  const degrausToUse = getDegraus(clienteData);
   el.innerHTML = '';
   degrausToUse.forEach((d, i) => {
     const isDone = done.includes(i);
@@ -1446,6 +1539,22 @@ window.toggleTecnica = el => {
 // ── ESTRELAS ──────────────────────────────────────────
 window.toggleStar = el => el.classList.toggle('filled');
 
+// ── BUILD ORIENTACOES ─────────────────────────────────
+function buildOrientacoes() {
+  const grid = document.getElementById('dosDontsGrid');
+  if (!grid) return;
+  const p = getProtocolo(clienteData);
+  grid.innerHTML = `
+    <div class="do-col">
+      <div class="col-title">✅ Faça isso</div>
+      <ul>${p.orientacoes.fazer.map(i=>`<li>${i}</li>`).join('')}</ul>
+    </div>
+    <div class="dont-col">
+      <div class="col-title">❌ Evite isso</div>
+      <ul>${p.orientacoes.evitar.map(i=>`<li>${i}</li>`).join('')}</ul>
+    </div>`;
+}
+
 // ── NAV ───────────────────────────────────────────────
 function buildNav(tabs) {
   const nav = document.getElementById('navTabs');
@@ -1609,6 +1718,7 @@ function renderClienteCard(lista, id, data) {
         <div style="font-size:11px;color:var(--gray);margin-top:2px">
           👧 ${data.nomeCrianca||'—'} ${data.idade?'('+data.idade+')':''}
           ${data.cid ? `· <span style="color:var(--purple);font-weight:700">${data.cid}</span>` : ''}
+          · <span style="font-weight:700;color:${(PROTOCOLOS[data.protocolo||'vaso']||PROTOCOLOS.vaso).cor}">${(PROTOCOLOS[data.protocolo||'vaso']||PROTOCOLOS.vaso).emoji} ${(PROTOCOLOS[data.protocolo||'vaso']||PROTOCOLOS.vaso).nome}</span>
         </div>
         ${data.proximaSessao ? `<div style="font-size:11px;color:var(--teal);font-weight:700;margin-top:2px">📅 ${new Date(data.proximaSessao).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
       </div>
@@ -1866,18 +1976,48 @@ function getInitials(name) {
 }
 
 // ── THEME TOGGLE ──────────────────────────────────────
-function toggleTheme() {
+window.toggleTheme = function() {
   const isDark = document.body.classList.toggle('dark');
-  document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  const btn = document.getElementById('themeToggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
   localStorage.setItem('theme', isDark ? 'dark' : 'light');
-}
-// Apply saved theme
-if (localStorage.getItem('theme') === 'dark') {
-  document.body.classList.add('dark');
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('themeToggle');
-    if (btn) btn.textContent = '☀️';
+};
+// Apply saved theme on load
+(function() {
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+    window.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('themeToggle');
+      if (btn) btn.textContent = '☀️';
+    });
+  }
+})();
+
+// ── PROTOCOL SELECTOR ────────────────────────────────
+let protocoloAtual = null;
+
+window.selecionarProtocolo = function(id, el) {
+  document.getElementById('novoProtocolo').value = id;
+  document.querySelectorAll('.protocolo-opt').forEach(o => {
+    o.style.background = 'var(--light)';
+    o.style.borderColor = 'transparent';
+    o.querySelector('div:last-child').style.color = 'var(--gray)';
   });
+  const p = PROTOCOLOS[id];
+  el.style.background = p.cor + '22';
+  el.style.borderColor = p.cor;
+  el.querySelector('div:last-child').style.color = p.cor;
+};
+
+function getProtocolo(data) {
+  return PROTOCOLOS[data.protocolo || 'vaso'] || PROTOCOLOS.vaso;
+}
+
+function getDegraus(data) {
+  const p = getProtocolo(data);
+  return data.metasDegraus
+    ? p.degraus.map((d,i) => ({...d, title: data.metasDegraus[i]||d.title}))
+    : p.degraus;
 }
 
 // ── SORT ORDER ────────────────────────────────────────
