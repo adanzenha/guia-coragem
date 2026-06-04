@@ -37,7 +37,7 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     z-index: 9999; transition: opacity 0.5s;
   }
-  #loadingScreen.hide { opacity: 0; pointer-events: none; }
+  #loadingScreen.hide { opacity: 0; pointer-events: none; display: none !important; }
   .loading-emoji { font-size: 48px; animation: floaty 1.5s ease-in-out infinite; margin-bottom: 16px; }
   .loading-text { color: white; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 18px; }
   .loading-sub { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 6px; }
@@ -1728,7 +1728,10 @@ function showToast(msg) {
 window.showToast = showToast;
 
 function hideLoading() {
-  setTimeout(()=>document.getElementById('loadingScreen').classList.add('hide'), 400);
+  const el = document.getElementById('loadingScreen');
+  if (!el) return;
+  el.style.opacity = '0';
+  setTimeout(() => { el.style.display = 'none'; }, 400);
 }
 
 function confetti() {
@@ -2387,9 +2390,21 @@ const savedCode = localStorage.getItem('savedCode');
 function showLoginScreen() {
   try {
     hideLoading();
+    setTimeout(() => {
+      const ls = document.getElementById('loginScreen');
+      if (ls) {
+        ls.style.display = 'flex';
+        ls.style.opacity = '1';
+        ls.classList.add('show');
+      }
+    }, 450); // wait for hideLoading animation
+  } catch(e) {
+    // fallback - force show
     const ls = document.getElementById('loginScreen');
-    if (ls) { ls.style.display = 'flex'; ls.classList.add('show'); }
-  } catch(e) { console.error('showLoginScreen error:', e); }
+    const ld = document.getElementById('loadingScreen');
+    if (ld) ld.style.display = 'none';
+    if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
+  }
 }
 
 try {
@@ -2411,14 +2426,16 @@ try {
   showLoginScreen();
 }
 
-// Safety net — after 4s if still loading, show login
+// Safety net — after 3s force show login no matter what
 setTimeout(() => {
-  const ls = document.getElementById('loadingScreen');
-  if (ls && !ls.classList.contains('hide')) {
+  const ld = document.getElementById('loadingScreen');
+  const ls = document.getElementById('loginScreen');
+  if (ld && ld.style.display !== 'none') {
     console.warn('Safety net triggered');
-    showLoginScreen();
+    ld.style.display = 'none';
+    if (ls) { ls.style.display = 'flex'; ls.style.opacity = '1'; }
   }
-}, 4000);
+}, 3000);
 </script>
 </body>
 </html>
