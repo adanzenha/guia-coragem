@@ -654,8 +654,65 @@ async function initPsicologa() {
       </div>
     </section>
   `;
-  await carregarClientes();
+  listenClientes();
   hideLoading();
+}
+
+// Real-time listener for all clients (psicóloga panel)
+let clientesUnsubscribe = null;
+function listenClientes() {
+  if (clientesUnsubscribe) clientesUnsubscribe();
+  clientesUnsubscribe = onSnapshot(collection(db, 'clientes'), snap => {
+    renderClientesLista(snap);
+    // Check for new unread messages
+    snap.docChanges().forEach(change => {
+      if (change.type === 'modified') {
+        const data = change.doc.data();
+        const chat = data.chat || [];
+        const lastMsg = chat[chat.length - 1];
+        if (lastMsg && lastMsg.remetente === 'familia' && lastMsg.ts > (Date.now() - 10000)) {
+          showToast('💬 Nova mensagem de ' + (data.nomeFamilia || change.doc.id) + '!');
+          // Update open modal if matches
+          const openChat = document.getElementById('psiChatWrap-' + change.doc.id);
+          if (openChat) renderPsiChat(change.doc.id, chat);
+        }
+      }
+    });
+  });
+}
+
+function renderClientesLista(snap) {
+  const lista = document.getElementById('clientesLista');
+  if (!lista) return;
+  if (snap.empty) {
+    lista.innerHTML = '<div style="text-align:center;padding:30px;color:var(--gray)"><div style="font-size:40px;margin-bottom:10px">👨‍👩‍👧</div><p>Nenhum cliente ainda.</p><p style="font-size:12px;margin-top:4px">Clique em "+ Novo Cliente" para começar.</p></div>';
+    return;
+  }
+  lista.innerHTML = '';
+  snap.forEach(d => {
+    const data = d.data();
+    if (data._deleted) return;
+    const done = (data.degraus || []).length;
+    const pct = (done / 8) * 100;
+    const chat = data.chat || [];
+    const lastMsg = chat[chat.length - 1];
+    const hasUnread = lastMsg && lastMsg.remetente === 'familia';
+    const card = document.createElement('div');
+    card.className = 'cliente-card';
+    card.innerHTML = `
+      <div class="cliente-card-top">
+        <span class="cliente-nome">👨‍👩‍👧 ${data.nomeFamilia || d.id}${hasUnread ? '<span class="unread-dot"></span>' : ''}</span>
+        <span class="cliente-code">${d.id}</span>
+      </div>
+      <div style="font-size:12px;color:var(--gray);margin-bottom:8px">
+        👧 ${data.nomeCrianca || '—'} ${data.idade ? '· '+data.idade : ''}
+        ${lastMsg ? ` · 💬 ${lastMsg.remetente === 'familia' ? '<strong>Nova msg!</strong>' : 'Respondido'}` : ''}
+      </div>
+      <div class="cliente-prog"><div class="cliente-prog-fill" style="width:${pct}%"></div></div>
+      <div class="cliente-meta"><span>Progresso: ${done}/8 degraus</span><span>${pct.toFixed(0)}%</span></div>`;
+    card.onclick = () => verCliente(d.id, data);
+    lista.appendChild(card);
+  });
 }
 
 async function carregarClientes() {
@@ -994,7 +1051,7 @@ window.showTab = function(id) {
   // simpler: match by onclick
   document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.getAttribute('onclick')===`showTab('${id}')`) b.classList.add('active'); });
   window.scrollTo({top:0,behavior:'smooth'});
-  if (id==='painel') carregarClientes();
+  if (id==='painel') listenClientes();
 };
 
 // ── SHARE ─────────────────────────────────────────────
