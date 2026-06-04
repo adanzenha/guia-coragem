@@ -375,6 +375,47 @@
   .days-warn { background: var(--yellow-pale); color: #B8860B; }
   .days-late { background: var(--pink-pale);   color: var(--pink); }
 
+  /* CERTIFICADO */
+  .certificado { background: linear-gradient(135deg, #7C5CBF, #3BAFB8); border-radius: 20px; padding: 28px 24px; text-align: center; color: white; position: relative; overflow: hidden; }
+  .certificado::before { content: ''; position: absolute; inset: 4px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 16px; pointer-events: none; }
+  .certificado h2 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; margin-bottom: 6px; }
+  .certificado p { font-size: 13px; opacity: 0.85; line-height: 1.6; }
+  .cert-emoji { font-size: 48px; margin-bottom: 10px; display: block; }
+
+  /* DIÁRIO */
+  .emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .emoji-option { width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; background: var(--light); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .emoji-option:hover { transform: scale(1.15); }
+  .emoji-option.selected { border-color: var(--purple); background: var(--purple-pale); transform: scale(1.15); }
+  .diario-entry { background: var(--light); border-radius: 12px; padding: 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .diario-emoji { font-size: 28px; flex-shrink: 0; }
+  .diario-text { font-size: 12px; color: var(--text); flex: 1; line-height: 1.5; }
+  .diario-date { font-size: 10px; color: var(--gray); }
+
+  /* ANALYTICS */
+  .analytics-card { background: white; border-radius: 16px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .analytics-card h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; color: var(--dark); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .metric-item { background: var(--light); border-radius: 12px; padding: 14px; text-align: center; }
+  .metric-value { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 28px; color: var(--purple); }
+  .metric-label { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .progress-list { display: flex; flex-direction: column; gap: 8px; }
+  .progress-list-item { display: flex; align-items: center; gap: 8px; }
+  .progress-list-item span { font-size: 12px; width: 100px; flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .mini-bar { flex: 1; height: 8px; background: var(--light); border-radius: 50px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 50px; background: linear-gradient(90deg, var(--purple), var(--teal)); }
+  .mini-pct { font-size: 11px; color: var(--gray); width: 32px; text-align: right; }
+
+  /* METAS PERSONALIZADAS */
+  .meta-item { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+  .meta-num { width: 24px; height: 24px; border-radius: 50%; background: var(--purple); color: white; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .meta-input { flex: 1; border: none; background: none; font-family: 'Quicksand', sans-serif; font-size: 13px; color: var(--text); padding: 2px 0; }
+  .meta-input:focus { outline: none; border-bottom: 1px solid var(--purple); }
+
+  /* ESCALA */
+  .escala-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 13px; }
+  .escala-score { font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--purple); font-size: 16px; }
+
   /* CONFETTI */
   .confetti-piece { position: fixed; width: 10px; height: 10px; z-index: 9999; pointer-events: none; animation: fall linear forwards; }
 
@@ -585,6 +626,8 @@ function updateClienteUI() {
   if (pl) pl.textContent = done.length + '/8';
   buildEscada();
   renderNotas();
+  renderDiario();
+  checkCertificado();
 }
 
 function initCliente() {
@@ -602,6 +645,7 @@ function initCliente() {
     {id:'termometro',label:'🌡️ Termômetro'},
     {id:'tecnicas',label:'💨 Técnicas'},
     {id:'orientacoes',label:'📋 Orientações'},
+    {id:'diario',label:'😊 Diário'},
     {id:'imagens',label:'📸 Imagens'},
     {id:'notas',label:'📝 Anotações'},
   ];
@@ -631,6 +675,7 @@ function buildClienteSections() {
         <div class="star-row" id="starRow">${[...Array(7)].map(()=>`<div class="star" onclick="toggleStar(this)">⭐</div>`).join('')}</div>
       </div>
       <div class="info-row"><div class="info-icon">❤️</div><p><strong>Lembre-se:</strong> Nunca force nem critique. Cada pequena tentativa é uma vitória enorme.</p></div>
+      <div id="certificadoWrap" style="display:none;margin-top:16px"></div>
     </section>
 
     <section class="section" id="sec-escada">
@@ -684,6 +729,31 @@ function buildClienteSections() {
           <li><span class="check-icon green">🏆</span><span>Urinar no vaso sozinho(a)!</span></li>
         </ul>
       </div>
+    </section>
+
+    <section class="section" id="sec-diario">
+      <div class="section-header"><h2>😊 Diário Emocional</h2><p>Como a criança se sentiu hoje?</p></div>
+      <div class="highlight teal"><strong>💡 Como usar</strong>Escolha o emoji que melhor representa como seu filho(a) se sentiu hoje em relação ao banheiro. Pode adicionar um comentário!</div>
+      <div class="card">
+        <h2>Como foi hoje?</h2>
+        <div class="emoji-picker" id="emojiPicker">
+          <div class="emoji-option" onclick="selecionarEmoji(this,'😄')">😄</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'🙂')">🙂</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'😐')">😐</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'😟')">😟</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'😨')">😨</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'😭')">😭</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'💪')">💪</div>
+          <div class="emoji-option" onclick="selecionarEmoji(this,'🌟')">🌟</div>
+        </div>
+        <div style="margin-top:10px">
+          <label class="note-label">💬 O que aconteceu? (opcional)</label>
+          <textarea class="note-area" id="diarioComentario" placeholder="Ex: Tentou sentar no vaso pela primeira vez!" style="min-height:70px"></textarea>
+        </div>
+        <div class="btn-row"><button class="btn btn-primary" onclick="salvarDiario()">💾 Registrar no diário</button></div>
+      </div>
+      <div class="divider"></div>
+      <div id="diarioEntries"><p style="text-align:center;color:var(--gray);font-size:13px">Nenhum registro ainda</p></div>
     </section>
 
     <section class="section" id="sec-imagens">
@@ -740,7 +810,7 @@ async function initPsicologa() {
   document.getElementById('mainContent').style.display = 'block';
   document.getElementById('fabBtn').style.display = 'none';
 
-  const tabs = [{id:'painel',label:'📊 Painel'},{id:'novo',label:'➕ Novo Cliente'}];
+  const tabs = [{id:'painel',label:'📊 Painel'},{id:'analytics',label:'📈 Analytics'},{id:'novo',label:'➕ Novo Cliente'}];
   buildNav(tabs);
 
   const main = document.getElementById('mainContent');
@@ -765,6 +835,11 @@ async function initPsicologa() {
       </div>
       <div id="clientesLista"><div style="text-align:center;color:var(--gray);padding:20px">Carregando clientes...</div></div>
     </section>
+    <section class="section" id="sec-analytics">
+      <div class="section-header"><h2>📈 Analytics</h2><p>Visão geral do seu consultório</p></div>
+      <div id="analyticsContent"><div style="text-align:center;padding:30px;color:var(--gray)">Carregando dados...</div></div>
+    </section>
+
     <section class="section" id="sec-novo">
       <div class="section-header"><h2>➕ Novo Cliente</h2><p>Criar acesso para uma nova família</p></div>
       <div class="card">
@@ -955,6 +1030,37 @@ Qualquer dúvida, pode me chamar! 💜</div>
         <button onclick="salvarObsPrivada('${code}')" style="margin-top:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:white;padding:7px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">💾 Salvar observações</button>
       </div>
 
+      <!-- METAS PERSONALIZADAS -->
+      <div style="margin-top:14px">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--dark);margin-bottom:8px">🎯 Metas Personalizadas dos Degraus</div>
+        <div style="font-size:11px;color:var(--gray);margin-bottom:8px">Edite os degraus para este cliente específico:</div>
+        <div id="metasEdit-${code}">
+          ${(data.metasDegraus || ['Olhar foto do banheiro','Entrar no banheiro vestido(a)','Sentar no vaso com roupa','Sentar sem roupa, sem urinar','Tentar urinar c/ porta aberta','Urinar com cuidador ao lado','Urinar sozinho(a), porta entreaberta','Urinar sozinho(a), porta fechada 🏆']).map((m,i) => `
+            <div class="meta-item">
+              <div class="meta-num">${i+1}</div>
+              <input class="meta-input" id="meta-${code}-${i}" value="${m}" placeholder="Descrição do degrau ${i+1}">
+            </div>`).join('')}
+        </div>
+        <button onclick="salvarMetas('${code}')" style="margin-top:8px;background:var(--purple-pale);color:var(--purple);border:1px solid var(--purple);padding:7px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">💾 Salvar metas</button>
+      </div>
+
+      <!-- ESCALA DE AVALIAÇÃO -->
+      <div style="margin-top:14px">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;color:var(--dark);margin-bottom:8px">📏 Escala de Avaliação (0-10)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:var(--teal-pale);border-radius:10px;padding:10px">
+            <div style="font-size:11px;color:var(--teal);font-weight:700;margin-bottom:4px">📅 Avaliação inicial</div>
+            <input type="number" min="0" max="10" id="escalaInicial-${code}" value="${data.escalaInicial||''}" placeholder="0-10" style="width:100%;border:1px solid rgba(59,175,184,0.3);border-radius:6px;padding:6px 8px;font-size:14px;font-family:'Nunito',sans-serif;font-weight:800;text-align:center">
+          </div>
+          <div style="background:var(--green-pale);border-radius:10px;padding:10px">
+            <div style="font-size:11px;color:var(--green);font-weight:700;margin-bottom:4px">✅ Avaliação atual</div>
+            <input type="number" min="0" max="10" id="escalaAtual-${code}" value="${data.escalaAtual||''}" placeholder="0-10" style="width:100%;border:1px solid rgba(76,175,125,0.3);border-radius:6px;padding:6px 8px;font-size:14px;font-family:'Nunito',sans-serif;font-weight:800;text-align:center">
+          </div>
+        </div>
+        <button onclick="salvarEscala('${code}')" style="margin-top:8px;background:var(--green-pale);color:var(--green);border:1px solid var(--green);padding:7px 16px;border-radius:8px;font-weight:700;font-size:12px;cursor:pointer">💾 Salvar avaliação</button>
+        ${data.escalaInicial && data.escalaAtual ? `<div style="margin-top:8px;background:var(--purple-pale);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--purple);font-weight:700">📊 Melhora: ${Math.max(0, data.escalaInicial - data.escalaAtual)} pontos (${Math.round((1 - data.escalaAtual/data.escalaInicial)*100)}%)</div>` : ''}
+      </div>
+
       <div style="margin-top:14px">
         <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">📅 Editar próxima sessão</div>
         <div style="display:flex;gap:8px">
@@ -1057,8 +1163,11 @@ function buildEscada() {
   const el = document.getElementById('escadaEl');
   if (!el) return;
   const done = clienteData.degraus || [];
+  // Use custom metas if available
+  const metas = clienteData.metasDegraus;
+  const degrausToUse = metas ? DEGRAUS.map((d,i) => ({...d, title: metas[i]||d.title})) : DEGRAUS;
   el.innerHTML = '';
-  DEGRAUS.forEach((d, i) => {
+  degrausToUse.forEach((d, i) => {
     const isDone = done.includes(i);
     const div = document.createElement('div');
     div.className = 'degrau' + (isDone ? ' done' : '');
@@ -1068,7 +1177,7 @@ function buildEscada() {
       <div class="degrau-num" style="background:${d.color}">${i+1}</div>
       <div class="degrau-text">
         <strong style="color:${isDone?d.color:'var(--dark)'}">${d.title}</strong>
-        <span>${d.sub}</span>
+        <span>${d.sub||''}</span>
       </div>
       <div class="degrau-check" style="${isDone?`background:${d.color};border-color:${d.color}`:''}">
         ${isDone ? '<span style="color:white">✓</span>' : ''}
@@ -1271,6 +1380,7 @@ window.showTab = function(id) {
   document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.getAttribute('onclick')===`showTab('${id}')`) b.classList.add('active'); });
   window.scrollTo({top:0,behavior:'smooth'});
   if (id==='painel') listenClientes();
+  if (id==='analytics') renderAnalytics();
 };
 
 // ── SHARE ─────────────────────────────────────────────
@@ -1467,6 +1577,197 @@ window.salvarObsPrivada = async function(code) {
   await updateDoc(doc(db, 'clientes', code), { obsClinica: obs, cid });
   showToast('🔒 Observações salvas!');
 };
+
+// ── DIÁRIO EMOCIONAL ─────────────────────────────────
+let emojiSelecionado = null;
+
+window.selecionarEmoji = function(el, emoji) {
+  document.querySelectorAll('.emoji-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  emojiSelecionado = emoji;
+};
+
+window.salvarDiario = async function() {
+  if (!emojiSelecionado) { showToast('😊 Selecione um emoji primeiro!'); return; }
+  const comentario = document.getElementById('diarioComentario')?.value || '';
+  const entrada = { emoji: emojiSelecionado, comentario, data: new Date().toLocaleDateString('pt-BR'), ts: Date.now() };
+  const diario = [...(clienteData.diario || []), entrada];
+  clienteData.diario = diario;
+  await updateDoc(doc(db, 'clientes', currentCode), { diario });
+  document.getElementById('diarioComentario').value = '';
+  emojiSelecionado = null;
+  document.querySelectorAll('.emoji-option').forEach(e => e.classList.remove('selected'));
+  renderDiario();
+  showToast('😊 Registrado no diário!');
+};
+
+function renderDiario() {
+  const el = document.getElementById('diarioEntries');
+  if (!el) return;
+  const diario = [...(clienteData.diario || [])].reverse();
+  if (!diario.length) { el.innerHTML = '<p style="text-align:center;color:var(--gray);font-size:13px">Nenhum registro ainda</p>'; return; }
+  el.innerHTML = '<h3 style="font-family:Nunito;font-weight:800;font-size:15px;margin-bottom:10px">📖 Histórico</h3>' +
+    diario.map(e => `<div class="diario-entry">
+      <div class="diario-emoji">${e.emoji}</div>
+      <div class="diario-text">${e.comentario || 'Sem comentário'}<div class="diario-date">${e.data}</div></div>
+    </div>`).join('');
+}
+
+// ── CERTIFICADO ───────────────────────────────────────
+function checkCertificado() {
+  const el = document.getElementById('certificadoWrap');
+  if (!el) return;
+  const done = (clienteData.degraus || []).length;
+  if (done === 8) {
+    const nome = clienteData.nomeCrianca || 'você';
+    el.style.display = 'block';
+    el.innerHTML = `
+      <div class="certificado">
+        <span class="cert-emoji">🏆</span>
+        <h2>Parabéns, ${nome}!</h2>
+        <p style="font-size:16px;font-weight:800;margin:8px 0">CERTIFICADO DE CORAGEM</p>
+        <p>Você completou todos os 8 degraus da Escada da Coragem e superou o medo! Isso é incrível! 🌟</p>
+        <p style="margin-top:10px;font-size:12px;opacity:0.7">Emitido em ${new Date().toLocaleDateString('pt-BR')}</p>
+        <button onclick="imprimirCertificado('${clienteData.nomeCrianca||''}','${currentCode}')" style="margin-top:14px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.4);color:white;padding:10px 20px;border-radius:10px;font-weight:800;font-size:13px;cursor:pointer">🖨️ Imprimir Certificado</button>
+      </div>`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+window.imprimirCertificado = function(nome, code) {
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Certificado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    body{font-family:'Nunito',sans-serif;margin:0;padding:40px;background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:100vh}
+    .cert{background:white;border-radius:20px;padding:60px 50px;max-width:700px;width:100%;text-align:center;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+    .cert::before{content:'';position:absolute;inset:12px;border:3px double #7C5CBF;border-radius:12px;pointer-events:none}
+    .emoji{font-size:80px;display:block;margin-bottom:16px}
+    h1{font-size:36px;font-weight:900;background:linear-gradient(135deg,#7C5CBF,#3BAFB8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:0 0 8px}
+    h2{font-size:22px;color:#3A3550;margin:0 0 24px}
+    .nome{font-size:32px;font-weight:900;color:#7C5CBF;border-bottom:2px solid #7C5CBF;display:inline-block;padding-bottom:6px;margin:16px 0}
+    p{color:#666;font-size:15px;line-height:1.7}
+    .data{margin-top:40px;font-size:13px;color:#999}
+    button{margin-top:20px;background:linear-gradient(135deg,#7C5CBF,#3BAFB8);color:white;border:none;padding:12px 28px;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer}
+    @media print{button{display:none}body{background:white;padding:0}.cert{box-shadow:none}}
+  </style></head><body>
+  <div class="cert">
+    <span class="emoji">🏆</span>
+    <h1>CERTIFICADO DE CORAGEM</h1>
+    <p>Este certificado é concedido com muito orgulho a</p>
+    <div class="nome">${nome || 'Herói Corajoso'}</div>
+    <p>Por ter completado com dedicação e coragem todos os <strong>8 degraus da Escada da Coragem</strong>, superando o medo e conquistando uma grande vitória!</p>
+    <p style="margin-top:16px">🌟 Você é incrível e merece muito essa conquista! 🌟</p>
+    <div class="data">Emitido em ${new Date().toLocaleDateString('pt-BR')} · Sistema Escada da Coragem</div>
+    <button onclick="window.print()">🖨️ Imprimir</button>
+  </div></body></html>`);
+  win.document.close();
+};
+
+// ── METAS PERSONALIZADAS ──────────────────────────────
+window.salvarMetas = async function(code) {
+  const metas = [];
+  for (let i = 0; i < 8; i++) {
+    const val = document.getElementById(`meta-${code}-${i}`)?.value;
+    metas.push(val || `Degrau ${i+1}`);
+  }
+  await updateDoc(doc(db, 'clientes', code), { metasDegraus: metas });
+  showToast('🎯 Metas salvas!');
+};
+
+// ── ESCALA DE AVALIAÇÃO ───────────────────────────────
+window.salvarEscala = async function(code) {
+  const ini = parseFloat(document.getElementById(`escalaInicial-${code}`)?.value) || null;
+  const atu = parseFloat(document.getElementById(`escalaAtual-${code}`)?.value) || null;
+  await updateDoc(doc(db, 'clientes', code), { escalaInicial: ini, escalaAtual: atu });
+  showToast('📏 Avaliação salva!');
+};
+
+// ── ANALYTICS ─────────────────────────────────────────
+function renderAnalytics() {
+  const el = document.getElementById('analyticsContent');
+  if (!el || !todosClientes.length) return;
+  const ativos = todosClientes.filter(c => !c.data.arquivado);
+  const totalClientes = ativos.length;
+  const concluidos = ativos.filter(c => (c.data.degraus||[]).length === 8).length;
+  const totalNotas = ativos.reduce((s, c) => s + (c.data.notas||[]).length, 0);
+  const totalMsgs = ativos.reduce((s, c) => s + (c.data.chat||[]).length, 0);
+
+  // Average progress
+  const avgProg = totalClientes
+    ? Math.round(ativos.reduce((s,c) => s + (c.data.degraus||[]).length, 0) / totalClientes / 8 * 100)
+    : 0;
+
+  // Anxiety evolution
+  const allNiveis = ativos.flatMap(c => (c.data.notas||[]).filter(n=>n.nivel).map(n=>n.nivel));
+  const avgNivel = allNiveis.length ? (allNiveis.reduce((a,b)=>a+b,0)/allNiveis.length).toFixed(1) : '—';
+
+  // Most active families (by nota count)
+  const rankFamilias = ativos
+    .map(c => ({ nome: c.data.nomeFamilia||c.id, notas: (c.data.notas||[]).length, prog: (c.data.degraus||[]).length }))
+    .sort((a,b) => b.notas - a.notas)
+    .slice(0, 6);
+
+  // Status distribution
+  const statusCount = { green: 0, yellow: 0, red: 0 };
+  ativos.forEach(c => { statusCount[c.data.status||'green']++; });
+
+  el.innerHTML = `
+    <div class="analytics-card">
+      <h3>📊 Visão Geral</h3>
+      <div class="metric-grid">
+        <div class="metric-item"><div class="metric-value">${totalClientes}</div><div class="metric-label">Clientes ativos</div></div>
+        <div class="metric-item"><div class="metric-value" style="color:var(--teal)">${concluidos}</div><div class="metric-label">Casos concluídos</div></div>
+        <div class="metric-item"><div class="metric-value" style="color:var(--green)">${avgProg}%</div><div class="metric-label">Progresso médio</div></div>
+        <div class="metric-item"><div class="metric-value" style="color:var(--orange)">${avgNivel}</div><div class="metric-label">Nível ansiedade médio</div></div>
+        <div class="metric-item"><div class="metric-value" style="color:var(--purple);font-size:22px">${totalNotas}</div><div class="metric-label">Anotações totais</div></div>
+        <div class="metric-item"><div class="metric-value" style="color:var(--pink);font-size:22px">${totalMsgs}</div><div class="metric-label">Mensagens no chat</div></div>
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <h3>🚦 Status dos Clientes</h3>
+      <div style="display:flex;gap:10px">
+        <div style="flex:1;background:var(--green-pale);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--green)">${statusCount.green}</div>
+          <div style="font-size:11px;color:var(--gray)">🟢 Bem</div>
+        </div>
+        <div style="flex:1;background:var(--yellow-pale);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:#B8860B">${statusCount.yellow}</div>
+          <div style="font-size:11px;color:var(--gray)">🟡 Atenção</div>
+        </div>
+        <div style="flex:1;background:var(--pink-pale);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-family:'Nunito',sans-serif;font-weight:900;font-size:24px;color:var(--pink)">${statusCount.red}</div>
+          <div style="font-size:11px;color:var(--gray)">🔴 Urgente</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <h3>🏆 Progresso por Família</h3>
+      <div class="progress-list">
+        ${rankFamilias.map(f => `
+          <div class="progress-list-item">
+            <span title="${f.nome}">${f.nome}</span>
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.round(f.prog/8*100)}%"></div></div>
+            <span class="mini-pct">${Math.round(f.prog/8*100)}%</span>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="analytics-card">
+      <h3>📝 Engajamento (anotações por família)</h3>
+      <div class="progress-list">
+        ${rankFamilias.sort((a,b)=>b.notas-a.notas).map(f => `
+          <div class="progress-list-item">
+            <span title="${f.nome}">${f.nome}</span>
+            <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.min(100,f.notas*10)}%;background:linear-gradient(90deg,var(--teal),var(--teal-light))"></div></div>
+            <span class="mini-pct">${f.notas}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
 
 // ── AVATAR & COLOR UTILS ─────────────────────────────
 const AVATAR_COLORS = ['#7C5CBF','#3BAFB8','#F06292','#FF8C42','#4CAF7D','#5C6BC0','#26A69A','#EC407A','#FFA726','#66BB6A'];
