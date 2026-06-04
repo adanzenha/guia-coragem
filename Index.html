@@ -833,15 +833,44 @@ onAuthStateChanged(auth, (user) => {
 });
 
 window.fazerLogin = async function(lembrar) {
-  const code = document.getElementById('loginCode').value.trim().toLowerCase();
-  if (!code) return;
-  document.getElementById('loginError').style.display = 'none';
-
-  // Psicóloga login: now handled by Firebase Auth (see fazerLoginPsi)
-    document.getElementById('loginScreen').classList.remove('show');
-    initPsicologa();
+  const code = document.getElementById('loginCode')?.value?.trim().toLowerCase();
+  if (!code) {
+    hideLoading();
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginScreen').classList.add('show');
     return;
   }
+  document.getElementById('loginError').style.display = 'none';
+
+  try {
+    const snap = await getDoc(doc(db, 'clientes', code));
+    if (!snap.exists()) {
+      hideLoading();
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('loginScreen').classList.add('show');
+      document.getElementById('loginError').style.display = 'block';
+      localStorage.removeItem('savedCode');
+      return;
+    }
+    currentUser = 'cliente';
+    currentCode = code;
+    clienteData = snap.data();
+    if (lembrar || document.getElementById('lembrarLogin')?.checked) {
+      localStorage.setItem('savedCode', code);
+    }
+    hideLoading();
+    document.getElementById('loginScreen').style.display = 'none';
+    initCliente();
+    listenCliente(code);
+    listenChat(code);
+  } catch(e) {
+    hideLoading();
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginScreen').classList.add('show');
+    document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
 
   try {
     const snap = await getDoc(doc(db, 'clientes', code));
@@ -2337,42 +2366,59 @@ window.responderFamilia = async function(code) {
 const APP_VERSION = '1.0.0'; // ← MUDE ESTE NÚMERO A CADA ATUALIZAÇÃO
 
 (function checkVersion() {
-  const storedVersion = localStorage.getItem('appVersion');
-  if (storedVersion && storedVersion !== APP_VERSION) {
-    // Nova versão detectada — limpar cache automaticamente
-    console.log(`Nova versão: ${storedVersion} → ${APP_VERSION}. Atualizando...`);
-    // Clear caches
-    if ('caches' in window) {
-      caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  try {
+    const storedVersion = localStorage.getItem('appVersion');
+    if (storedVersion && storedVersion !== APP_VERSION) {
+      // Nova versão — limpar cache silenciosamente
+      if ('caches' in window) {
+        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+      }
+      localStorage.clear(); // limpa tudo incluindo savedCode da versão antiga
     }
     localStorage.setItem('appVersion', APP_VERSION);
-    // Reload once to get fresh content
-    if (!sessionStorage.getItem('reloaded_' + APP_VERSION)) {
-      sessionStorage.setItem('reloaded_' + APP_VERSION, '1');
-      window.location.reload(true);
-    }
-  } else {
-    localStorage.setItem('appVersion', APP_VERSION);
-  }
+  } catch(e) {}
 })();
 
 // ── AUTO LOGIN BY URL ──────────────────────────────────
 const urlCode = new URLSearchParams(window.location.search).get('code');
 const savedCode = localStorage.getItem('savedCode');
 
-// Startup simples — sem esperar Firebase Auth
-if (urlCode) {
-  document.getElementById('loginCode').value = urlCode;
-  window.fazerLogin();
-} else if (savedCode) {
-  document.getElementById('loginCode').value = savedCode;
-  document.getElementById('lembrarLogin').checked = true;
-  window.fazerLogin(true);
-} else {
-  hideLoading();
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginScreen').classList.add('show');
+// Startup
+function showLoginScreen() {
+  try {
+    hideLoading();
+    const ls = document.getElementById('loginScreen');
+    if (ls) { ls.style.display = 'flex'; ls.classList.add('show'); }
+  } catch(e) { console.error('showLoginScreen error:', e); }
 }
+
+try {
+  if (urlCode) {
+    const el = document.getElementById('loginCode');
+    if (el) el.value = urlCode;
+    window.fazerLogin().catch(() => showLoginScreen());
+  } else if (savedCode) {
+    const el = document.getElementById('loginCode');
+    const cb = document.getElementById('lembrarLogin');
+    if (el) el.value = savedCode;
+    if (cb) cb.checked = true;
+    window.fazerLogin(true).catch(() => showLoginScreen());
+  } else {
+    showLoginScreen();
+  }
+} catch(e) {
+  console.error('Startup error:', e);
+  showLoginScreen();
+}
+
+// Safety net — after 4s if still loading, show login
+setTimeout(() => {
+  const ls = document.getElementById('loadingScreen');
+  if (ls && !ls.classList.contains('hide')) {
+    console.warn('Safety net triggered');
+    showLoginScreen();
+  }
+}, 4000);
 </script>
 </body>
 </html>
