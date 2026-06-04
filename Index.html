@@ -329,6 +329,55 @@
   .welcome-msg { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.6; margin-bottom: 10px; white-space: pre-wrap; }
   .copy-msg-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; }
 
+  /* AVATAR */
+  .avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 14px; color: white; flex-shrink: 0; }
+
+  /* STATUS SEMÁFORO */
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .status-green  { background: #4CAF7D; box-shadow: 0 0 6px #4CAF7D; }
+  .status-yellow { background: #FFB830; box-shadow: 0 0 6px #FFB830; }
+  .status-red    { background: #E53935; box-shadow: 0 0 6px #E53935; animation: pulse 1.2s infinite; }
+  .status-select { background: none; border: 1.5px solid rgba(0,0,0,0.15); border-radius: 8px; padding: 4px 8px; font-family: 'Quicksand', sans-serif; font-size: 11px; font-weight: 700; cursor: pointer; color: var(--text); }
+
+  /* SORT BAR */
+  .sort-bar { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .sort-btn { background: var(--light); border: 1.5px solid rgba(124,92,191,0.15); border-radius: 8px; padding: 5px 12px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px; color: var(--gray); cursor: pointer; transition: all 0.2s; }
+  .sort-btn.active { background: var(--purple-pale); color: var(--purple); border-color: var(--purple); }
+
+  /* DARK MODE */
+  body.dark { --light: #1A1625; --white: #252035; --text: #E0D9F5; --gray: #9991BB; --dark: #F0EAFB; --shadow: 0 8px 32px rgba(0,0,0,0.4); }
+  body.dark .card { background: #252035; }
+  body.dark .nav-wrapper { background: #1E1830; }
+  body.dark .login-box { background: #252035; }
+  body.dark .note-area, body.dark .chat-input, body.dark .search-bar, body.dark .modal-input { background: #1A1625; color: #E0D9F5; border-color: rgba(124,92,191,0.3); }
+  body.dark .progress-wrap, body.dark .cliente-card { background: #252035; }
+  body.dark .highlight.purple { background: rgba(124,92,191,0.2); }
+  body.dark .highlight.teal { background: rgba(59,175,184,0.15); }
+  body.dark .highlight.yellow { background: rgba(255,184,48,0.15); }
+  body.dark .highlight.green { background: rgba(76,175,125,0.15); }
+  body.dark .highlight.orange { background: rgba(255,140,66,0.15); }
+  body.dark .highlight.pink { background: rgba(240,98,146,0.15); }
+  body.dark .do-col { background: rgba(76,175,125,0.15); }
+  body.dark .dont-col { background: rgba(240,98,146,0.15); }
+  body.dark .modal { background: #252035; }
+  body.dark .tab-btn { color: #9991BB; }
+  body.dark .tab-btn.active { color: var(--purple-light); border-bottom-color: var(--purple-light); }
+  body.dark .thermo-level { background: rgba(255,255,255,0.05) !important; }
+  body.dark .tecnica-card { filter: brightness(0.85); }
+
+  /* THEME TOGGLE */
+  .theme-toggle { position: fixed; bottom: 84px; right: 16px; width: 40px; height: 40px; border-radius: 50%; background: var(--dark); color: var(--light); border: 2px solid rgba(124,92,191,0.2); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; z-index: 200; box-shadow: var(--shadow); transition: all 0.3s; }
+  body.dark .theme-toggle { background: var(--purple-pale); }
+
+  /* DAYS BADGE */
+  .days-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 50px; }
+  .days-ok   { background: var(--green-pale);  color: var(--green); }
+  .days-warn { background: var(--yellow-pale); color: #B8860B; }
+  .days-late { background: var(--pink-pale);   color: var(--pink); }
+
+  /* CONFETTI */
+  .confetti-piece { position: fixed; width: 10px; height: 10px; z-index: 9999; pointer-events: none; animation: fall linear forwards; }
+
   .inactivity-banner { position: fixed; top: 0; left: 0; right: 0; background: var(--orange); color: white; text-align: center; padding: 10px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; z-index: 9998; display: none; }
 </style>
 <script>
@@ -403,6 +452,7 @@ function playNotifSound() {
 <main id="mainContent" style="display:none"></main>
 
 <button class="fab" id="fabBtn" style="display:none" onclick="openShareModal()">📤</button>
+<button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Alternar tema">🌙</button>
 
 <!-- MODAL ADD CLIENTE -->
 <div class="modal-overlay" id="addClienteModal">
@@ -696,11 +746,22 @@ async function initPsicologa() {
   const main = document.getElementById('mainContent');
   main.innerHTML = `
     <section class="section active" id="sec-painel">
-      <div class="painel-header"><h2>👩‍⚕️ Painel da Psicóloga</h2><p>Todos os seus clientes e progresso em tempo real</p></div>
-      <input class="search-bar" id="searchClientes" placeholder="Buscar cliente pelo nome ou código..." oninput="filtrarClientes(this.value)">
-      <div style="display:flex;gap:8px;margin-bottom:14px">
+      <div class="painel-header" style="position:relative">
+        <h2>👩‍⚕️ Painel da Psicóloga</h2>
+        <p>Todos os seus clientes e progresso em tempo real</p>
+        <div id="statsBar" style="display:flex;gap:12px;margin-top:10px;flex-wrap:wrap"></div>
+      </div>
+      <input class="search-bar" id="searchClientes" placeholder="🔍 Buscar cliente pelo nome ou código..." oninput="filtrarClientes(this.value)">
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
         <button class="btn btn-outline" id="btnAtivos" onclick="setFiltroArquivo(false)" style="font-size:12px;padding:7px 14px;border-radius:10px;background:var(--purple);color:white;border-color:var(--purple)">✅ Ativos</button>
         <button class="btn btn-outline" id="btnArquivados" onclick="setFiltroArquivo(true)" style="font-size:12px;padding:7px 14px;border-radius:10px">🗂️ Arquivados</button>
+      </div>
+      <div class="sort-bar">
+        <span style="font-size:11px;color:var(--gray);font-weight:700;align-self:center">Ordenar:</span>
+        <button class="sort-btn active" id="sort-recente" onclick="setSortOrder('recente',this)">🕐 Mais recente</button>
+        <button class="sort-btn" id="sort-sessao" onclick="setSortOrder('sessao',this)">📅 Próxima sessão</button>
+        <button class="sort-btn" id="sort-progresso" onclick="setSortOrder('progresso',this)">📊 Progresso</button>
+        <button class="sort-btn" id="sort-mensagem" onclick="setSortOrder('mensagem',this)">💬 Nova msg</button>
       </div>
       <div id="clientesLista"><div style="text-align:center;color:var(--gray);padding:20px">Carregando clientes...</div></div>
     </section>
@@ -803,10 +864,20 @@ window.verCliente = function(code, data) {
     <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:40px">
       <h3>👨‍👩‍👧 ${data.nomeFamilia || code}</h3>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        ${data.foto ? `<img src="${data.foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--purple-pale)">` : '<div style="width:48px;height:48px;border-radius:50%;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:24px">👧</div>'}
-        <div>
+        ${data.foto
+          ? `<img src="${data.foto}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;border:2px solid var(--purple-pale)">`
+          : `<div class="avatar" style="width:48px;height:48px;font-size:18px;background:${getAvatarColor(data.nomeFamilia||code)}">${getInitials(data.nomeFamilia||code)}</div>`}
+        <div style="flex:1">
           <p style="font-size:13px;margin:0">👧 ${data.nomeCrianca||'—'} · Código: <strong>${code}</strong></p>
           ${data.proximaSessao ? `<p style="font-size:12px;color:var(--teal);font-weight:700;margin:3px 0 0">📅 Próxima sessão: ${new Date(data.proximaSessao).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'})}</p>` : ''}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+            <div class="status-dot status-${data.status||'green'}"></div>
+            <select class="status-select" onchange="atualizarStatus('${code}',this.value)">
+              <option value="green"  ${(data.status||'green')==='green' ?'selected':''}>🟢 Bem</option>
+              <option value="yellow" ${data.status==='yellow'?'selected':''}>🟡 Atenção</option>
+              <option value="red"    ${data.status==='red'   ?'selected':''}>🔴 Suporte urgente</option>
+            </select>
+          </div>
         </div>
       </div>
       <div style="margin:12px 0">
@@ -1249,18 +1320,47 @@ window.filtrarClientes = function(q) {
   const lista = document.getElementById('clientesLista');
   if (!lista) return;
   lista.innerHTML = '';
-  const term = q.toLowerCase();
-  todosClientes
-    .filter(({id, data}) => {
-      if (!!data.arquivado !== mostrarArquivados) return false;
-      if (!term) return true;
-      return (data.nomeFamilia||'').toLowerCase().includes(term) ||
-             (data.nomeCrianca||'').toLowerCase().includes(term) ||
-             id.toLowerCase().includes(term);
-    })
-    .forEach(({id, data}) => renderClienteCard(lista, id, data));
+  const term = (q||'').toLowerCase();
+  let filtered = todosClientes.filter(({id, data}) => {
+    if (!!data.arquivado !== mostrarArquivados) return false;
+    if (!term) return true;
+    return (data.nomeFamilia||'').toLowerCase().includes(term) ||
+           (data.nomeCrianca||'').toLowerCase().includes(term) ||
+           id.toLowerCase().includes(term);
+  });
+
+  // Sort
+  filtered.sort((a, b) => {
+    if (currentSort === 'recente') {
+      const aT = (a.data.notas||[]).slice(-1)[0]?.ts || new Date(a.data.criadoEm||0).getTime();
+      const bT = (b.data.notas||[]).slice(-1)[0]?.ts || new Date(b.data.criadoEm||0).getTime();
+      return bT - aT;
+    }
+    if (currentSort === 'sessao') {
+      const aS = a.data.proximaSessao ? new Date(a.data.proximaSessao).getTime() : Infinity;
+      const bS = b.data.proximaSessao ? new Date(b.data.proximaSessao).getTime() : Infinity;
+      return aS - bS;
+    }
+    if (currentSort === 'progresso') {
+      return (b.data.degraus||[]).length - (a.data.degraus||[]).length;
+    }
+    if (currentSort === 'mensagem') {
+      const aM = a.data.chat?.slice(-1)[0]?.remetente === 'familia' ? 1 : 0;
+      const bM = b.data.chat?.slice(-1)[0]?.remetente === 'familia' ? 1 : 0;
+      return bM - aM;
+    }
+    return 0;
+  });
+
+  // Status urgentes first
+  const urgentes = filtered.filter(c => c.data.status === 'red');
+  const resto = filtered.filter(c => c.data.status !== 'red');
+  [...urgentes, ...resto].forEach(({id, data}) => renderClienteCard(lista, id, data));
+
   if (!lista.children.length)
     lista.innerHTML = '<div style="text-align:center;padding:20px;color:var(--gray)">Nenhum cliente encontrado</div>';
+  
+  updateStatsBar();
 };
 
 window.setFiltroArquivo = function(arq) {
@@ -1277,24 +1377,52 @@ function renderClienteCard(lista, id, data) {
   const done = (data.degraus || []).length;
   const pct = (done / 8) * 100;
   const chat = data.chat || [];
+  const notas = data.notas || [];
   const lastMsg = chat[chat.length - 1];
+  const lastNota = notas[notas.length - 1];
   const hasUnread = lastMsg && lastMsg.remetente === 'familia';
+  const statusClass = { green: 'status-green', yellow: 'status-yellow', red: 'status-red' }[data.status || 'green'];
+
+  // Days since last activity
+  let daysBadge = '';
+  const lastActivity = lastNota?.ts || (data.criadoEm ? new Date(data.criadoEm).getTime() : null);
+  if (lastActivity) {
+    const days = Math.floor((Date.now() - lastActivity) / 86400000);
+    if (days === 0) daysBadge = '<span class="days-badge days-ok">Hoje</span>';
+    else if (days <= 3) daysBadge = `<span class="days-badge days-ok">${days}d atrás</span>`;
+    else if (days <= 7) daysBadge = `<span class="days-badge days-warn">${days}d atrás</span>`;
+    else daysBadge = `<span class="days-badge days-late">${days}d atrás</span>`;
+  }
+
+  const avatarHtml = data.foto
+    ? `<img src="${data.foto}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--purple-pale)">`
+    : `<div class="avatar" style="width:40px;height:40px;background:${getAvatarColor(data.nomeFamilia||id)}">${getInitials(data.nomeFamilia||id)}</div>`;
+
   const card = document.createElement('div');
   card.className = 'cliente-card';
   if (data.arquivado) card.style.opacity = '0.65';
   card.innerHTML = `
-    <div class="cliente-card-top">
-      <span class="cliente-nome">👨‍👩‍👧 ${data.nomeFamilia || id}${hasUnread ? '<span class="unread-dot"></span>' : ''}${data.arquivado ? '<span class="archived-badge">Arquivado</span>' : ''}</span>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="position:relative">
+        ${avatarHtml}
+        <div class="status-dot ${statusClass}" style="position:absolute;bottom:0;right:0;border:2px solid white"></div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="cliente-nome" style="font-size:14px">${data.nomeFamilia || id}</span>
+          ${hasUnread ? '<span class="unread-dot"></span>' : ''}
+          ${data.arquivado ? '<span class="archived-badge">Arquivado</span>' : ''}
+          ${daysBadge}
+        </div>
+        <div style="font-size:11px;color:var(--gray);margin-top:2px">
+          👧 ${data.nomeCrianca||'—'} ${data.idade?'('+data.idade+')':''}
+          ${data.cid ? `· <span style="color:var(--purple);font-weight:700">${data.cid}</span>` : ''}
+        </div>
+        ${data.proximaSessao ? `<div style="font-size:11px;color:var(--teal);font-weight:700;margin-top:2px">📅 ${new Date(data.proximaSessao).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
+      </div>
       <span class="cliente-code">${id}</span>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      ${data.foto ? `<img src="${data.foto}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--purple-pale)">` : '<div style="width:32px;height:32px;border-radius:50%;background:var(--purple-pale);display:flex;align-items:center;justify-content:center;font-size:16px">👧</div>'}
-      <div>
-        <div style="font-size:12px;color:var(--gray)">👧 ${data.nomeCrianca||'—'} ${data.idade?'· '+data.idade:''} ${data.cid?'· <span style="color:var(--purple);font-weight:700">'+data.cid+'</span>':''}</div>
-        ${data.proximaSessao ? `<div style="font-size:11px;color:var(--teal);font-weight:700">📅 ${new Date(data.proximaSessao).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>` : ''}
-        ${lastMsg ? `<div style="font-size:11px">${lastMsg.remetente==='familia'?'💬 <strong style="color:var(--pink)">Nova mensagem!</strong>':'💬 Respondido'}</div>` : ''}
-      </div>
-    </div>
+    ${hasUnread ? `<div style="background:var(--pink-pale);border-radius:8px;padding:5px 10px;font-size:11px;margin-bottom:8px;color:var(--pink);font-weight:700">💬 Nova mensagem da família!</div>` : ''}
     <div class="cliente-prog"><div class="cliente-prog-fill" style="width:${pct}%"></div></div>
     <div class="cliente-meta"><span>Progresso: ${done}/8 degraus</span><span>${pct.toFixed(0)}%</span></div>`;
   card.onclick = () => verCliente(id, data);
@@ -1339,6 +1467,70 @@ window.salvarObsPrivada = async function(code) {
   await updateDoc(doc(db, 'clientes', code), { obsClinica: obs, cid });
   showToast('🔒 Observações salvas!');
 };
+
+// ── AVATAR & COLOR UTILS ─────────────────────────────
+const AVATAR_COLORS = ['#7C5CBF','#3BAFB8','#F06292','#FF8C42','#4CAF7D','#5C6BC0','#26A69A','#EC407A','#FFA726','#66BB6A'];
+function getAvatarColor(name) {
+  let hash = 0;
+  for (let i = 0; i < (name||'').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+function getInitials(name) {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) return (words[0][0] + words[words.length-1][0]).toUpperCase();
+  return name.slice(0,2).toUpperCase();
+}
+
+// ── THEME TOGGLE ──────────────────────────────────────
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark');
+  document.getElementById('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+}
+// Apply saved theme
+if (localStorage.getItem('theme') === 'dark') {
+  document.body.classList.add('dark');
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('themeToggle');
+    if (btn) btn.textContent = '☀️';
+  });
+}
+
+// ── SORT ORDER ────────────────────────────────────────
+let currentSort = 'recente';
+window.setSortOrder = function(order, btn) {
+  currentSort = order;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filtrarClientes(document.getElementById('searchClientes')?.value || '');
+};
+
+// ── STATUS UPDATE ─────────────────────────────────────
+window.atualizarStatus = async function(code, status) {
+  await updateDoc(doc(db, 'clientes', code), { status });
+  showToast(status === 'green' ? '🟢 Status: Bem' : status === 'yellow' ? '🟡 Status: Atenção' : '🔴 Status: Suporte urgente');
+};
+
+// ── STATS BAR ─────────────────────────────────────────
+function updateStatsBar() {
+  const el = document.getElementById('statsBar');
+  if (!el) return;
+  const ativos = todosClientes.filter(c => !c.data.arquivado && !c.data._deleted);
+  const urgentes = ativos.filter(c => c.data.status === 'red').length;
+  const concluidos = ativos.filter(c => (c.data.degraus||[]).length === 8).length;
+  const msgNovas = ativos.filter(c => {
+    const chat = c.data.chat || [];
+    const last = chat[chat.length-1];
+    return last && last.remetente === 'familia';
+  }).length;
+  el.innerHTML = `
+    <span style="background:rgba(255,255,255,0.15);border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700">👥 ${ativos.length} ativos</span>
+    ${urgentes ? `<span style="background:#E5393533;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700">🔴 ${urgentes} urgente${urgentes>1?'s':''}</span>` : ''}
+    ${msgNovas ? `<span style="background:#F0629233;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700">💬 ${msgNovas} msg nova${msgNovas>1?'s':''}</span>` : ''}
+    ${concluidos ? `<span style="background:#4CAF7D33;border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700">🏆 ${concluidos} concluído${concluidos>1?'s':''}</span>` : ''}
+  `;
+}
 
 // ── WHATSAPP FUNCTIONS ───────────────────────────────
 window.enviarLembrete = function(code, familia, crianca, proximaSessao) {
