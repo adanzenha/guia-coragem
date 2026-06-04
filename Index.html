@@ -2360,45 +2360,19 @@ const APP_VERSION = '1.0.0'; // ← MUDE ESTE NÚMERO A CADA ATUALIZAÇÃO
 const urlCode = new URLSearchParams(window.location.search).get('code');
 const savedCode = localStorage.getItem('savedCode');
 
-// Wait for Firebase Auth to resolve before deciding what to show
-// onAuthStateChanged fires once on load — if user logged in as psicóloga, it handles it
-// If no auth user, we handle family/guest login below
-let authResolved = false;
-const unsubAuth = onAuthStateChanged(auth, (user) => {
-  if (authResolved) return; // only handle initial load
-  authResolved = true;
-  unsubAuth(); // stop listening after first check
-
-  if (user) {
-    // Already logged in as psicóloga (persistent session)
-    currentUser = 'psicologa';
-    hideLoading();
-    document.getElementById('loginScreen').style.display = 'none';
-    initPsicologa();
-    resetInactivity();
-  } else if (urlCode) {
-    document.getElementById('loginCode').value = urlCode;
-    window.fazerLogin();
-  } else if (savedCode) {
-    document.getElementById('loginCode').value = savedCode;
-    document.getElementById('lembrarLogin').checked = true;
-    window.fazerLogin(true);
-  } else {
-    // No Firebase session — show login immediately
-    hideLoading();
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('loginScreen').classList.add('show');
-  }
-});
-
-// Safety timeout — if Firebase takes too long, show login anyway
-setTimeout(() => {
-  if (!authResolved) {
-    authResolved = true;
-    hideLoading();
-    document.getElementById('loginScreen').classList.add('show');
-  }
-}, 2000);
+// Startup simples — sem esperar Firebase Auth
+if (urlCode) {
+  document.getElementById('loginCode').value = urlCode;
+  window.fazerLogin();
+} else if (savedCode) {
+  document.getElementById('loginCode').value = savedCode;
+  document.getElementById('lembrarLogin').checked = true;
+  window.fazerLogin(true);
+} else {
+  hideLoading();
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginScreen').classList.add('show');
+}
 </script>
 </body>
 </html>
