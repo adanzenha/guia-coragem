@@ -2384,7 +2384,9 @@ const unsubAuth = onAuthStateChanged(auth, (user) => {
     document.getElementById('lembrarLogin').checked = true;
     window.fazerLogin(true);
   } else {
+    // No Firebase session — show login immediately
     hideLoading();
+    document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('loginScreen').classList.add('show');
   }
 });
@@ -2396,7 +2398,7 @@ setTimeout(() => {
     hideLoading();
     document.getElementById('loginScreen').classList.add('show');
   }
-}, 5000);
+}, 2000);
 </script>
 </body>
 </html>
