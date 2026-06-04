@@ -273,6 +273,38 @@
   @keyframes starPop { 0%{transform:scale(1.4)}100%{transform:scale(1)} }
   @keyframes breathe { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(59,175,184,0.4)}50%{transform:scale(1.3);box-shadow:0 0 0 18px rgba(59,175,184,0)} }
   @keyframes fall { to{transform:translateY(110vh) rotate(720deg);opacity:0} }
+
+  /* CHAT */
+  .chat-wrap { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; max-height: 420px; overflow-y: auto; padding: 4px 2px; }
+  .chat-msg { display: flex; flex-direction: column; max-width: 85%; animation: fadeUp 0.3s ease; }
+  .chat-msg.familia { align-self: flex-start; }
+  .chat-msg.psicologa { align-self: flex-end; }
+  .chat-bubble {
+    padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.6;
+    position: relative;
+  }
+  .chat-msg.familia .chat-bubble { background: var(--light); border: 1px solid rgba(124,92,191,0.15); border-bottom-left-radius: 4px; color: var(--text); }
+  .chat-msg.psicologa .chat-bubble { background: linear-gradient(135deg, var(--purple), var(--purple-light)); color: white; border-bottom-right-radius: 4px; }
+  .chat-meta { font-size: 10px; color: var(--gray); margin-top: 3px; padding: 0 4px; }
+  .chat-msg.psicologa .chat-meta { text-align: right; }
+  .chat-sender { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 11px; margin-bottom: 2px; padding: 0 4px; }
+  .chat-msg.familia .chat-sender { color: var(--purple); }
+  .chat-msg.psicologa .chat-sender { color: var(--teal); text-align: right; }
+  .chat-nota-ref { background: rgba(255,255,255,0.15); border-radius: 8px; padding: 5px 8px; font-size: 11px; margin-bottom: 6px; border-left: 2px solid rgba(255,255,255,0.4); }
+  .chat-nota-ref.dark { background: var(--purple-pale); border-left-color: var(--purple); color: var(--purple); }
+  .chat-input-wrap { display: flex; gap: 8px; align-items: flex-end; }
+  .chat-input { flex: 1; padding: 10px 14px; border: 2px solid rgba(124,92,191,0.2); border-radius: 14px; font-family: 'Quicksand', sans-serif; font-size: 13px; resize: none; min-height: 42px; max-height: 100px; color: var(--text); transition: border-color 0.2s; }
+  .chat-input:focus { outline: none; border-color: var(--purple); }
+  .chat-send-btn { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--teal)); color: white; border: none; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+  .chat-send-btn:hover { transform: scale(1.1); }
+  .chat-empty { text-align: center; padding: 24px; color: var(--gray); font-size: 13px; }
+  .chat-empty div { font-size: 32px; margin-bottom: 8px; }
+  .nota-chat-card { background: var(--light); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; border-left: 3px solid var(--purple); }
+  .nota-chat-card .nota-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .nota-chat-card .nota-date { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px; color: var(--purple); }
+  .nota-chat-card .nota-body { font-size: 12px; color: var(--text); line-height: 1.5; }
+  .reply-badge { background: var(--teal-pale); border: 1px solid var(--teal); border-radius: 8px; padding: 6px 10px; font-size: 11px; color: var(--teal); margin-top: 6px; display: flex; align-items: center; gap: 5px; }
+  .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pink); display: inline-block; margin-left: 4px; animation: pulse 1.5s infinite; }
 </style>
 </head>
 <body>
@@ -416,6 +448,7 @@ window.fazerLogin = async function() {
     document.getElementById('loginScreen').classList.remove('show');
     initCliente();
     listenCliente(code);
+    listenChat(code);
   } catch(e) {
     document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
     document.getElementById('loginError').style.display = 'block';
@@ -560,7 +593,7 @@ function buildClienteSections() {
     </section>
 
     <section class="section" id="sec-notas">
-      <div class="section-header"><h2>📝 Anotações da Família</h2><p>Registre conquistas e observações — a psicóloga verá tudo!</p></div>
+      <div class="section-header"><h2>📝 Anotações da Família</h2><p>Registre conquistas — a psicóloga verá e poderá responder!</p></div>
       <div class="sync-badge"><span class="sync-dot"></span>Sincronizado em tempo real</div>
       <div style="margin-bottom:14px"><label class="note-label">📅 Data</label><input type="date" id="notaData" class="note-area" style="min-height:unset;height:42px"></div>
       <div style="margin-bottom:14px">
@@ -574,6 +607,18 @@ function buildClienteSections() {
       <div class="btn-row"><button class="btn btn-primary" onclick="salvarNota()">💾 Salvar anotação</button></div>
       <div class="divider"></div>
       <div id="notasSalvas"></div>
+      <div class="divider"></div>
+      <div class="section-header" style="margin-top:8px"><h2>💬 Chat com a Psicóloga</h2><p>Tire dúvidas e receba orientações em tempo real</p></div>
+      <div class="card" style="padding:16px">
+        <div class="chat-wrap" id="chatWrap">
+          <div class="chat-empty"><div>💬</div>Nenhuma mensagem ainda.<br>Envie uma mensagem para a psicóloga!</div>
+        </div>
+        <div class="chat-input-wrap">
+          <textarea class="chat-input" id="chatInput" placeholder="Digite uma mensagem..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarChat()}"></textarea>
+          <button class="chat-send-btn" onclick="enviarChat()">➤</button>
+        </div>
+      </div>
     </section>
   `;
   buildThermo();
@@ -679,12 +724,23 @@ window.verCliente = function(code, data) {
             ${n.texto?`<p style="margin-bottom:4px;color:var(--text)">${n.texto}</p>`:''}
             ${n.conquista?`<div style="background:var(--yellow-pale);border-radius:8px;padding:6px 10px;margin-top:4px">⭐ <strong>${n.conquista}</strong></div>`:''}
           </div>`).join('')}` : '<p style="font-size:12px;color:var(--gray);text-align:center;padding:12px">Nenhuma anotação ainda</p>'}
+      <div style="margin-top:14px">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;margin-bottom:8px;color:var(--dark)">💬 Chat com a família</div>
+        <div class="chat-wrap" id="psiChatWrap-${code}" style="max-height:260px;background:var(--light);border-radius:12px;padding:10px"></div>
+        <div class="chat-input-wrap" style="margin-top:8px">
+          <textarea class="chat-input" id="psiChatInput-${code}" placeholder="Responder para a família..." rows="1"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();responderFamilia('${code}')}"></textarea>
+          <button class="chat-send-btn" onclick="responderFamilia('${code}')">➤</button>
+        </div>
+      </div>
       <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-primary" onclick="copiarLinkCliente('${code}');document.getElementById('clienteDetailModal').remove()" style="flex:1">📤 Copiar link</button>
         <button class="btn btn-danger" onclick="excluirCliente('${code}')" style="flex:0">🗑️</button>
       </div>
       <button class="modal-close" onclick="document.getElementById('clienteDetailModal').remove()">Fechar</button>
     </div></div>`;
+  // Load chat for this client
+  setTimeout(() => renderPsiChat(code, data.chat || []), 100);
   document.body.insertAdjacentHTML('beforeend', html);
 };
 
@@ -835,6 +891,54 @@ function renderNotas() {
     </div>`).join('');
 }
 
+// ── CHAT ─────────────────────────────────────────────
+let chatUnsubscribe = null;
+
+function listenChat(code) {
+  if (chatUnsubscribe) chatUnsubscribe();
+  chatUnsubscribe = onSnapshot(doc(db, 'clientes', code), snap => {
+    if (snap.exists()) {
+      const msgs = snap.data().chat || [];
+      renderChat(msgs);
+    }
+  });
+}
+
+function renderChat(msgs) {
+  const el = document.getElementById('chatWrap');
+  if (!el) return;
+  if (!msgs.length) {
+    el.innerHTML = '<div class="chat-empty"><div>💬</div>Nenhuma mensagem ainda.<br>Envie uma mensagem para a psicóloga!</div>';
+    return;
+  }
+  el.innerHTML = msgs.map(m => {
+    const isPsi = m.remetente === 'psicologa';
+    return `<div class="chat-msg ${isPsi ? 'psicologa' : 'familia'}">
+      <div class="chat-sender">${isPsi ? '👩‍⚕️ Psicóloga' : '👨‍👩‍👧 Família'}</div>
+      <div class="chat-bubble">${m.texto}</div>
+      <div class="chat-meta">${m.data || ''}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+window.enviarChat = async function() {
+  const input = document.getElementById('chatInput');
+  const texto = input?.value?.trim();
+  if (!texto) return;
+  const msg = {
+    remetente: 'familia',
+    texto,
+    data: new Date().toLocaleString('pt-BR'),
+    ts: Date.now()
+  };
+  const chat = [...(clienteData.chat || []), msg];
+  clienteData.chat = chat;
+  input.value = '';
+  await updateDoc(doc(db, 'clientes', currentCode), { chat });
+  showToast('💬 Mensagem enviada!');
+};
+
 // ── IMAGENS ───────────────────────────────────────────
 let images = [];
 window.handleFiles = function(e) {
@@ -930,6 +1034,44 @@ function confetti() {
     setTimeout(()=>d.remove(),3000);
   }
 }
+
+// ── PSICÓLOGA CHAT ───────────────────────────────────
+function renderPsiChat(code, msgs) {
+  const el = document.getElementById('psiChatWrap-' + code);
+  if (!el) return;
+  if (!msgs.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--gray);font-size:12px;padding:12px">Nenhuma mensagem ainda</div>';
+    return;
+  }
+  el.innerHTML = msgs.map(m => {
+    const isPsi = m.remetente === 'psicologa';
+    return `<div class="chat-msg ${isPsi ? 'psicologa' : 'familia'}" style="margin-bottom:8px">
+      <div class="chat-sender">${isPsi ? '👩‍⚕️ Você' : '👨‍👩‍👧 Família'}</div>
+      <div class="chat-bubble">${m.texto}</div>
+      <div class="chat-meta">${m.data || ''}</div>
+    </div>`;
+  }).join('');
+  el.scrollTop = el.scrollHeight;
+}
+
+window.responderFamilia = async function(code) {
+  const input = document.getElementById('psiChatInput-' + code);
+  const texto = input?.value?.trim();
+  if (!texto) return;
+  try {
+    const snap = await getDoc(doc(db, 'clientes', code));
+    const chat = [...(snap.data().chat || []), {
+      remetente: 'psicologa',
+      texto,
+      data: new Date().toLocaleString('pt-BR'),
+      ts: Date.now()
+    }];
+    await updateDoc(doc(db, 'clientes', code), { chat });
+    input.value = '';
+    renderPsiChat(code, chat);
+    showToast('💬 Resposta enviada!');
+  } catch(e) { showToast('❌ Erro ao enviar'); }
+};
 
 // ── AUTO LOGIN BY URL ──────────────────────────────────
 const urlCode = new URLSearchParams(window.location.search).get('code');
