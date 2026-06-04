@@ -323,6 +323,10 @@
     <h2>Escada da Coragem</h2>
     <p>Digite o código da família ou entre como psicóloga</p>
     <input class="login-input" id="loginCode" placeholder="Código (ex: familia-silva)" />
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;justify-content:flex-start">
+      <input type="checkbox" id="lembrarLogin" style="width:16px;height:16px;cursor:pointer;accent-color:#7C5CBF">
+      <label for="lembrarLogin" style="font-size:13px;color:var(--gray);cursor:pointer;font-weight:600">Lembrar meu acesso</label>
+    </div>
     <button class="login-btn" onclick="fazerLogin()">✨ Entrar</button>
     <div class="login-error" id="loginError">Código não encontrado. Verifique com a psicóloga.</div>
     <hr class="login-divider">
@@ -423,7 +427,7 @@ const THERMO = [
 ];
 
 // ── LOGIN ────────────────────────────────────────────
-window.fazerLogin = async function() {
+window.fazerLogin = async function(lembrar) {
   const code = document.getElementById('loginCode').value.trim().toLowerCase();
   if (!code) return;
   document.getElementById('loginError').style.display = 'none';
@@ -431,6 +435,9 @@ window.fazerLogin = async function() {
   if (code === 'psicologa-admin') {
     currentUser = 'psicologa';
     currentCode = 'admin';
+    if (lembrar || document.getElementById('lembrarLogin')?.checked) {
+      localStorage.setItem('savedCode', 'psicologa-admin');
+    }
     document.getElementById('loginScreen').classList.remove('show');
     initPsicologa();
     return;
@@ -445,6 +452,9 @@ window.fazerLogin = async function() {
     currentUser = 'cliente';
     currentCode = code;
     clienteData = snap.data();
+    if (document.getElementById('lembrarLogin')?.checked) {
+      localStorage.setItem('savedCode', code);
+    }
     document.getElementById('loginScreen').classList.remove('show');
     initCliente();
     listenCliente(code);
@@ -754,7 +764,7 @@ window.verCliente = function(code, data) {
   const notas = data.notas || [];
   const degraus = data.degraus || [];
   let html = `
-    <div class="modal-overlay open" id="clienteDetailModal" onclick="if(event.target.id==='clienteDetailModal')document.getElementById('clienteDetailModal').remove()">
+    <div class="modal-overlay open" id="clienteDetailModal" onclick="if(event.target.id==='clienteDetailModal'){document.getElementById('clienteDetailModal').remove();if(window._modalUnsub){window._modalUnsub();window._modalUnsub=null;}}"">
     <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:40px">
       <h3>👨‍👩‍👧 ${data.nomeFamilia || code}</h3>
       <p>👧 ${data.nomeCrianca||'—'} · Código: <strong>${code}</strong></p>
@@ -794,10 +804,21 @@ window.verCliente = function(code, data) {
         <button class="btn btn-primary" onclick="copiarLinkCliente('${code}');document.getElementById('clienteDetailModal').remove()" style="flex:1">📤 Copiar link</button>
         <button class="btn btn-danger" onclick="excluirCliente('${code}')" style="flex:0">🗑️</button>
       </div>
-      <button class="modal-close" onclick="document.getElementById('clienteDetailModal').remove()">Fechar</button>
+      <button class="modal-close" onclick="document.getElementById('clienteDetailModal').remove();if(window._modalUnsub){window._modalUnsub();window._modalUnsub=null;}">Fechar</button>
     </div></div>`;
-  // Load chat for this client
-  setTimeout(() => renderPsiChat(code, data.chat || []), 100);
+  // Real-time chat listener for this client modal
+  setTimeout(() => {
+    renderPsiChat(code, data.chat || []);
+    // Listen for new messages in real-time
+    const unsubModal = onSnapshot(doc(db, 'clientes', code), snap => {
+      if (snap.exists()) {
+        const chat = snap.data().chat || [];
+        renderPsiChat(code, chat);
+      }
+    });
+    // Store unsubscribe to call when modal closes
+    window._modalUnsub = unsubModal;
+  }, 100);
   document.body.insertAdjacentHTML('beforeend', html);
 };
 
@@ -1132,9 +1153,14 @@ window.responderFamilia = async function(code) {
 
 // ── AUTO LOGIN BY URL ──────────────────────────────────
 const urlCode = new URLSearchParams(window.location.search).get('code');
+const savedCode = localStorage.getItem('savedCode');
 if (urlCode) {
   document.getElementById('loginCode').value = urlCode;
   window.fazerLogin();
+} else if (savedCode) {
+  document.getElementById('loginCode').value = savedCode;
+  document.getElementById('lembrarLogin').checked = true;
+  window.fazerLogin(true);
 } else {
   hideLoading();
   document.getElementById('loginScreen').classList.add('show');
