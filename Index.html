@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia para Pais — A Escada da Coragem</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple: #7C5CBF; --purple-light: #A07FD4; --purple-pale: #F0EAFB;
+    --teal: #3BAFB8; --teal-light: #6DCDD4; --teal-pale: #E4F7F8;
+    --yellow: #FFB830; --yellow-pale: #FFF8E7;
+    --pink: #F06292; --pink-pale: #FEE8F0;
+    --green: #4CAF7D; --green-pale: #E8F7EE;
+    --orange: #FF8C42; --orange-pale: #FFF0E6;
+    --dark: #1E1A2E; --text: #3A3550; --gray: #8A859E;
+    --light: #F7F5FF; --white: #FFFFFF;
+    --radius: 20px; --shadow: 0 8px 32px rgba(124,92,191,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Quicksand', sans-serif; background: var(--light); color: var(--text); overflow-x: hidden; }
+
+  /* LOADING */
+  #loadingScreen {
+    position: fixed; inset: 0; background: linear-gradient(135deg, #7C5CBF, #3BAFB8);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; transition: opacity 0.5s;
+  }
+  #loadingScreen.hide { opacity: 0; pointer-events: none; }
+  .loading-emoji { font-size: 48px; animation: floaty 1.5s ease-in-out infinite; margin-bottom: 16px; }
+  .loading-text { color: white; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 18px; }
+  .loading-sub { color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 6px; }
+
+  /* LOGIN */
+  #loginScreen {
+    display: none; position: fixed; inset: 0;
+    background: linear-gradient(135deg, #7C5CBF 0%, #3BAFB8 100%);
+    align-items: center; justify-content: center; z-index: 999; padding: 24px;
+  }
+  #loginScreen.show { display: flex; }
+  .login-box {
+    background: white; border-radius: 24px; padding: 32px 28px;
+    width: 100%; max-width: 380px; text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .login-emoji { font-size: 48px; margin-bottom: 12px; }
+  .login-box h2 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 22px; color: var(--dark); margin-bottom: 6px; }
+  .login-box p { font-size: 13px; color: var(--gray); margin-bottom: 20px; line-height: 1.5; }
+  .login-input {
+    width: 100%; padding: 12px 16px; border: 2px solid rgba(124,92,191,0.2);
+    border-radius: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px;
+    margin-bottom: 10px; transition: border-color 0.2s; color: var(--text);
+  }
+  .login-input:focus { outline: none; border-color: var(--purple); }
+  .login-btn {
+    width: 100%; padding: 14px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple), var(--teal));
+    color: white; font-family: 'Nunito', sans-serif; font-weight: 800;
+    font-size: 15px; cursor: pointer; transition: all 0.25s; margin-bottom: 8px;
+  }
+  .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,92,191,0.4); }
+  .login-error { color: var(--pink); font-size: 12px; margin-top: 4px; display: none; }
+  .login-divider { border: none; border-top: 1px solid rgba(0,0,0,0.08); margin: 14px 0; }
+  .login-code-hint { font-size: 11px; color: var(--gray); }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, #7C5CBF 0%, #3BAFB8 100%);
+    padding: 40px 24px 56px; text-align: center; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.06'%3E%3Ccircle cx='30' cy='30' r='10'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .hero-badge {
+    display: inline-block; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.3); color: white;
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px;
+    letter-spacing: 2px; text-transform: uppercase; padding: 6px 16px;
+    border-radius: 50px; margin-bottom: 16px;
+  }
+  .hero h1 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: clamp(24px, 6vw, 40px); color: white; line-height: 1.15; margin-bottom: 10px; }
+  .hero h1 span { color: var(--yellow); }
+  .hero p { color: rgba(255,255,255,0.88); font-size: 14px; max-width: 480px; margin: 0 auto 20px; line-height: 1.6; }
+  .hero-emojis { font-size: 34px; margin-bottom: 16px; display: flex; gap: 10px; justify-content: center; animation: floaty 3s ease-in-out infinite; }
+  .hero-pills { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .pill { background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.28); color: white; font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 50px; }
+  .client-name-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
+    color: white; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px;
+    padding: 7px 16px; border-radius: 50px; margin-bottom: 12px;
+  }
+
+  /* NAV */
+  .nav-wrapper { background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
+  .nav-tabs { display: flex; overflow-x: auto; scrollbar-width: none; padding: 0 8px; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .tab-btn {
+    flex: 0 0 auto; padding: 13px 14px;
+    font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px;
+    color: var(--gray); border: none; background: none; cursor: pointer;
+    border-bottom: 3px solid transparent; transition: all 0.25s; white-space: nowrap;
+  }
+  .tab-btn.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+  /* MAIN */
+  main { max-width: 700px; margin: 0 auto; padding: 20px 14px 56px; }
+  .section { display: none; animation: fadeUp 0.4s ease; }
+  .section.active { display: block; }
+
+  /* CARDS */
+  .card { background: white; border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .card-accent { position: absolute; top: 0; left: 0; width: 5px; height: 100%; border-radius: 20px 0 0 20px; }
+  .card h2 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 17px; color: var(--dark); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .card p { font-size: 14px; line-height: 1.7; color: var(--text); }
+  .section-header { margin-bottom: 18px; padding-bottom: 12px; border-bottom: 2px dashed rgba(124,92,191,0.15); }
+  .section-header h2 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: clamp(18px, 5vw, 24px); color: var(--dark); display: flex; align-items: center; gap: 10px; }
+  .section-header p { font-size: 13px; color: var(--gray); margin-top: 4px; }
+
+  /* HIGHLIGHT */
+  .highlight { border-radius: 14px; padding: 16px 18px; margin-bottom: 14px; font-size: 14px; line-height: 1.7; }
+  .highlight.purple { background: var(--purple-pale); border-left: 4px solid var(--purple); }
+  .highlight.teal   { background: var(--teal-pale);   border-left: 4px solid var(--teal); }
+  .highlight.yellow { background: var(--yellow-pale); border-left: 4px solid var(--yellow); }
+  .highlight.green  { background: var(--green-pale);  border-left: 4px solid var(--green); }
+  .highlight.pink   { background: var(--pink-pale);   border-left: 4px solid var(--pink); }
+  .highlight.orange { background: var(--orange-pale); border-left: 4px solid var(--orange); }
+  .highlight strong { display: block; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; margin-bottom: 4px; }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; font-size: 13px; line-height: 1.6; border-bottom: 1px solid rgba(0,0,0,0.05); }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { width: 22px; height: 22px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; margin-top: 1px; }
+  .check-icon.green  { background: var(--green-pale);  color: var(--green); }
+
+  /* ESCADA */
+  .escada { display: flex; flex-direction: column-reverse; gap: 8px; }
+  .degrau { border-radius: 14px; padding: 13px 14px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; user-select: none; }
+  .degrau:hover { transform: translateX(4px); }
+  .degrau-inner { display: flex; align-items: center; gap: 10px; }
+  .degrau-num { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 13px; flex-shrink: 0; color: white; }
+  .degrau-text { flex: 1; }
+  .degrau-text strong { display: block; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; }
+  .degrau-text span { font-size: 11px; color: var(--gray); }
+  .degrau-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; font-size: 12px; transition: all 0.3s; background: white; }
+
+  /* TERMÔMETRO */
+  .thermometer-wrap { display: flex; gap: 14px; align-items: flex-end; }
+  .thermo-bar { width: 32px; flex-shrink: 0; height: 200px; background: #f0f0f0; border-radius: 50px; position: relative; overflow: hidden; box-shadow: inset 0 2px 6px rgba(0,0,0,0.1); }
+  .thermo-fill { position: absolute; bottom: 0; left: 0; right: 0; border-radius: 50px; transition: height 0.6s cubic-bezier(0.34,1.56,0.64,1); background: linear-gradient(to top, #4CAF7D, #FFB830, #F06292, #FF8C42, #E53935); }
+  .thermo-levels { flex: 1; display: flex; flex-direction: column-reverse; gap: 5px; }
+  .thermo-level { border-radius: 10px; padding: 9px 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; border: 2px solid transparent; }
+  .thermo-level:hover { transform: translateX(3px); }
+  .thermo-level.selected { border-color: currentColor; }
+  .thermo-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .thermo-label { font-size: 12px; font-weight: 700; }
+  .thermo-sub { font-size: 10px; color: var(--gray); }
+
+  /* TÉCNICAS */
+  .tecnicas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 420px) { .tecnicas-grid { grid-template-columns: 1fr; } }
+  .tecnica-card { border-radius: 14px; padding: 16px; cursor: pointer; transition: all 0.3s; }
+  .tecnica-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.1); }
+  .tecnica-card .emoji { font-size: 26px; margin-bottom: 6px; display: block; }
+  .tecnica-card h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; margin-bottom: 3px; }
+  .tecnica-card p { font-size: 11px; color: var(--gray); line-height: 1.4; }
+  .tecnica-expanded { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(0,0,0,0.08); font-size: 12px; line-height: 1.6; color: var(--text); }
+  .tecnica-card.open .tecnica-expanded { display: block; }
+
+  /* DO & DON'T */
+  .dos-donts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  @media (max-width: 480px) { .dos-donts { grid-template-columns: 1fr; } }
+  .do-col, .dont-col { border-radius: 14px; padding: 14px; }
+  .do-col { background: var(--green-pale); }
+  .dont-col { background: var(--pink-pale); }
+  .col-title { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
+  .do-col .col-title { color: var(--green); }
+  .dont-col .col-title { color: var(--pink); }
+  .do-col li, .dont-col li { font-size: 12px; line-height: 1.5; padding: 4px 0 4px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); list-style: none; position: relative; }
+  .do-col li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+  .dont-col li::before { content: "✗"; position: absolute; left: 0; color: var(--pink); font-weight: 700; }
+  .do-col li:last-child, .dont-col li:last-child { border-bottom: none; }
+
+  /* IMAGENS */
+  .upload-area { border: 2.5px dashed rgba(124,92,191,0.3); border-radius: var(--radius); padding: 28px 20px; text-align: center; cursor: pointer; transition: all 0.3s; background: var(--purple-pale); position: relative; }
+  .upload-area:hover { border-color: var(--purple); background: white; }
+  .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+  .upload-icon { font-size: 36px; margin-bottom: 8px; }
+  .upload-area h3 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: var(--purple); margin-bottom: 4px; }
+  .upload-area p { font-size: 12px; color: var(--gray); }
+  .images-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-top: 14px; }
+  .img-thumb { position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; box-shadow: var(--shadow); animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .img-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .img-thumb .img-remove { position: absolute; top: 5px; right: 5px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.55); color: white; border: none; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .img-thumb .img-label { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.55)); color: white; font-size: 10px; padding: 14px 6px 5px; font-weight: 600; }
+  .img-caption-input { width: 100%; font-family: 'Quicksand', sans-serif; font-size: 11px; font-weight: 600; background: none; border: none; color: white; text-align: center; cursor: text; }
+  .img-caption-input::placeholder { color: rgba(255,255,255,0.7); }
+
+  /* ANOTAÇÕES */
+  .note-area { width: 100%; min-height: 110px; border: 2px solid rgba(124,92,191,0.15); border-radius: 12px; padding: 12px 14px; font-family: 'Quicksand', sans-serif; font-size: 14px; color: var(--text); resize: vertical; transition: border-color 0.2s; background: white; }
+  .note-area:focus { outline: none; border-color: var(--purple); }
+  .note-label { font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+
+  /* PAINEL PSICÓLOGA */
+  .painel-header { background: linear-gradient(135deg, var(--dark), #3A2D6B); border-radius: 16px; padding: 20px; margin-bottom: 16px; color: white; }
+  .painel-header h2 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; margin-bottom: 4px; }
+  .painel-header p { font-size: 12px; opacity: 0.75; }
+  .cliente-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 10px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+  .cliente-card:hover { border-color: var(--purple); transform: translateY(-2px); }
+  .cliente-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .cliente-nome { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px; color: var(--dark); }
+  .cliente-code { font-size: 11px; color: var(--gray); background: var(--light); padding: 3px 9px; border-radius: 50px; }
+  .cliente-prog { height: 8px; background: var(--purple-pale); border-radius: 50px; overflow: hidden; }
+  .cliente-prog-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--teal)); border-radius: 50px; transition: width 0.5s; }
+  .cliente-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--gray); margin-top: 4px; }
+  .add-cliente-btn { width: 100%; padding: 14px; border: 2px dashed rgba(124,92,191,0.3); border-radius: 14px; background: var(--purple-pale); color: var(--purple); font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .add-cliente-btn:hover { background: white; border-color: var(--purple); }
+
+  /* PROGRESS */
+  .progress-wrap { background: white; border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; box-shadow: var(--shadow); }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-top span { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; }
+  .progress-top strong { color: var(--purple); font-size: 17px; }
+  .progress-bar { height: 10px; background: var(--purple-pale); border-radius: 50px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--teal)); border-radius: 50px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+
+  /* BTNS */
+  .btn { display: inline-flex; align-items: center; gap: 7px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; padding: 11px 20px; border-radius: 50px; border: none; cursor: pointer; transition: all 0.25s; text-decoration: none; }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: linear-gradient(135deg, var(--purple), var(--purple-light)); color: white; box-shadow: 0 4px 16px rgba(124,92,191,0.35); }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(124,92,191,0.45); }
+  .btn-outline { background: white; color: var(--purple); border: 2px solid var(--purple); }
+  .btn-danger { background: white; color: var(--pink); border: 2px solid var(--pink); }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(30,26,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 24px 24px 0 0; padding: 24px 20px 36px; width: 100%; max-width: 480px; animation: slideUp 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  .modal h3 { font-family: 'Nunito', sans-serif; font-weight: 900; font-size: 18px; text-align: center; margin-bottom: 5px; }
+  .modal p { font-size: 13px; color: var(--gray); text-align: center; margin-bottom: 16px; }
+  .modal-input { width: 100%; padding: 12px 14px; border: 2px solid rgba(124,92,191,0.2); border-radius: 12px; font-family: 'Quicksand', sans-serif; font-size: 14px; margin-bottom: 8px; color: var(--text); }
+  .modal-input:focus { outline: none; border-color: var(--purple); }
+  .modal-close { display: block; width: 100%; margin-top: 10px; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; color: var(--gray); background: none; border: none; cursor: pointer; padding: 8px; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: white; font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 13px; padding: 11px 20px; border-radius: 50px; box-shadow: 0 8px 32px rgba(0,0,0,0.25); z-index: 2000; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* FAB */
+  .fab { position: fixed; bottom: 20px; right: 16px; width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, var(--purple), var(--teal)); color: white; border: none; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(124,92,191,0.45); transition: all 0.3s; z-index: 200; }
+  .fab:hover { transform: scale(1.1); }
+
+  /* MISC */
+  .divider { height: 1px; background: rgba(124,92,191,0.1); margin: 18px 0; }
+  .star-row { display: flex; gap: 6px; margin: 10px 0; flex-wrap: wrap; }
+  .star { width: 38px; height: 38px; border-radius: 50%; border: 2px dashed rgba(255,184,48,0.4); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: all 0.2s; background: var(--yellow-pale); }
+  .star.filled { background: var(--yellow); border-color: var(--yellow); animation: starPop 0.3s; }
+  .info-row { display: flex; gap: 10px; background: var(--teal-pale); border-radius: 12px; padding: 12px 14px; align-items: flex-start; margin-bottom: 14px; }
+  .info-row .info-icon { font-size: 20px; flex-shrink: 0; }
+  .info-row p { font-size: 13px; line-height: 1.6; }
+  .breathing-circle { width: 90px; height: 90px; border-radius: 50%; background: radial-gradient(circle, var(--teal-light), var(--teal)); margin: 16px auto; animation: breathe 4s ease-in-out infinite; display: flex; align-items: center; justify-content: center; color: white; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 11px; text-align: center; }
+  .sync-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--green-pale); color: var(--green); font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 11px; padding: 4px 12px; border-radius: 50px; margin-bottom: 10px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+  @keyframes floaty { 0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes popIn { from{opacity:0;transform:scale(0.8)}to{opacity:1;transform:scale(1)} }
+  @keyframes slideUp { from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1} }
+  @keyframes starPop { 0%{transform:scale(1.4)}100%{transform:scale(1)} }
+  @keyframes breathe { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(59,175,184,0.4)}50%{transform:scale(1.3);box-shadow:0 0 0 18px rgba(59,175,184,0)} }
+  @keyframes fall { to{transform:translateY(110vh) rotate(720deg);opacity:0} }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loadingScreen">
+  <div class="loading-emoji">🌟</div>
+  <div class="loading-text">Carregando...</div>
+  <div class="loading-sub">Conectando ao banco de dados</div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-emoji">🏥</div>
+    <h2>Escada da Coragem</h2>
+    <p>Digite o código da família ou entre como psicóloga</p>
+    <input class="login-input" id="loginCode" placeholder="Código (ex: familia-silva)" />
+    <button class="login-btn" onclick="fazerLogin()">✨ Entrar</button>
+    <div class="login-error" id="loginError">Código não encontrado. Verifique com a psicóloga.</div>
+    <hr class="login-divider">
+    <div class="login-code-hint">Psicóloga? Use o código: <strong>psicologa-admin</strong></div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero" id="heroSection" style="display:none">
+  <div class="hero-badge" id="heroBadge">🏥 Guia Terapêutico</div>
+  <div class="hero-emojis"><span>🚽</span><span>🌟</span><span>💪</span></div>
+  <h1>A <span>Escada da</span><br>Coragem</h1>
+  <p id="heroDesc">Um guia gentil para ajudar seu filho(a) a superar o medo de usar o vaso sanitário.</p>
+  <div class="hero-pills">
+    <span class="pill">📋 TCC Infantil</span>
+    <span class="pill">👨‍👩‍👧 Para Pais</span>
+    <span class="pill">🌈 4–10 anos</span>
+    <span class="sync-badge"><span class="sync-dot"></span>Sincronizado</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-wrapper" id="navWrapper" style="display:none">
+  <nav class="nav-tabs" id="navTabs"></nav>
+</div>
+
+<main id="mainContent" style="display:none"></main>
+
+<button class="fab" id="fabBtn" style="display:none" onclick="openShareModal()">📤</button>
+
+<!-- MODAL ADD CLIENTE -->
+<div class="modal-overlay" id="addClienteModal">
+  <div class="modal">
+    <h3>➕ Novo Cliente</h3>
+    <p>Crie um código para a família acessar o guia</p>
+    <input class="modal-input" id="novoClienteNome" placeholder="Nome da família (ex: Família Silva)" />
+    <input class="modal-input" id="novoClienteCodigo" placeholder="Código de acesso (ex: familia-silva)" />
+    <input class="modal-input" id="novoClienteCrianca" placeholder="Nome da criança" />
+    <button class="login-btn" onclick="criarCliente()" style="margin-top:4px">✅ Criar cliente</button>
+    <button class="modal-close" onclick="closeModal('addClienteModal')">Cancelar</button>
+  </div>
+</div>
+
+<!-- MODAL SHARE -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal">
+    <h3>📤 Compartilhar</h3>
+    <p>Envie o link de acesso para a família</p>
+    <div style="background:var(--purple-pale);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;word-break:break-all;color:var(--purple);font-weight:600" id="shareLinkBox"></div>
+    <button class="login-btn" onclick="copiarLink()">📋 Copiar link</button>
+    <button class="modal-close" onclick="closeModal('shareModal')">Fechar</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCRlKifl3dUhdxUgT9eaz1UcxTuiN3gEJ4",
+  authDomain: "psico-53299.firebaseapp.com",
+  projectId: "psico-53299",
+  storageBucket: "psico-53299.firebasestorage.app",
+  messagingSenderId: "967754693942",
+  appId: "1:967754693942:web:4903c2571be1ee8dade0b4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// ── ESTADO ──────────────────────────────────────────
+let currentUser = null; // 'psicologa' | 'cliente'
+let currentCode = null;
+let clienteData = {};
+let unsubscribe = null;
+
+const DEGRAUS = [
+  { title: "Olhar foto do banheiro", sub: "Nível 1-2", color: "#4CAF7D" },
+  { title: "Entrar no banheiro vestido(a)", sub: "Nível 2-3", color: "#7CB342" },
+  { title: "Sentar no vaso com roupa", sub: "Nível 3-4", color: "#FFB830" },
+  { title: "Sentar sem roupa, sem urinar", sub: "Nível 4-5", color: "#FF8C42" },
+  { title: "Tentar urinar c/ porta aberta", sub: "Nível 5-6", color: "#F06292" },
+  { title: "Urinar com cuidador ao lado", sub: "Nível 6-7", color: "#BA68C8" },
+  { title: "Urinar sozinho(a), porta entreaberta", sub: "Nível 7-8", color: "#7C5CBF" },
+  { title: "Urinar sozinho(a), porta fechada 🏆", sub: "META!", color: "#3BAFB8" },
+];
+
+const THERMO = [
+  { nivel:5, label:"Muito assustado(a)", sub:"Coração acelerado", color:"#E53935", height:"100%", msg:"😱 Pause tudo. Acolha com carinho. Não insista hoje." },
+  { nivel:4, label:"Bastante assustado(a)", sub:"Barriga doendo", color:"#FF8C42", height:"80%", msg:"😨 Use o Lugar Seguro. Espere a ansiedade baixar." },
+  { nivel:3, label:"Um pouco assustado(a)", sub:"Frio na barriga", color:"#FFB830", height:"60%", msg:"😟 Pratique a Respiração do Leão antes de continuar." },
+  { nivel:2, label:"Levemente nervoso(a)", sub:"Quer colo", color:"#AED581", height:"40%", msg:"🙂 Com um abraço, tente o próximo degrau!" },
+  { nivel:1, label:"Tranquilo(a)", sub:"Relaxado(a)", color:"#4CAF7D", height:"20%", msg:"😌 Perfeito! É o momento ideal para subir na escada!" },
+];
+
+// ── LOGIN ────────────────────────────────────────────
+window.fazerLogin = async function() {
+  const code = document.getElementById('loginCode').value.trim().toLowerCase();
+  if (!code) return;
+  document.getElementById('loginError').style.display = 'none';
+
+  if (code === 'psicologa-admin') {
+    currentUser = 'psicologa';
+    currentCode = 'admin';
+    document.getElementById('loginScreen').classList.remove('show');
+    initPsicologa();
+    return;
+  }
+
+  try {
+    const snap = await getDoc(doc(db, 'clientes', code));
+    if (!snap.exists()) {
+      document.getElementById('loginError').style.display = 'block';
+      return;
+    }
+    currentUser = 'cliente';
+    currentCode = code;
+    clienteData = snap.data();
+    document.getElementById('loginScreen').classList.remove('show');
+    initCliente();
+    listenCliente(code);
+  } catch(e) {
+    document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
+    document.getElementById('loginError').style.display = 'block';
+  }
+};
+
+document.getElementById('loginCode').addEventListener('keydown', e => { if(e.key==='Enter') window.fazerLogin(); });
+
+// ── CLIENTE UI ───────────────────────────────────────
+function listenCliente(code) {
+  if (unsubscribe) unsubscribe();
+  unsubscribe = onSnapshot(doc(db, 'clientes', code), snap => {
+    if (snap.exists()) {
+      clienteData = snap.data();
+      updateClienteUI();
+    }
+  });
+}
+
+function updateClienteUI() {
+  // progresso
+  const done = clienteData.degraus || [];
+  const pct = (done.length / DEGRAUS.length) * 100;
+  const pf = document.getElementById('progressFill');
+  const pl = document.getElementById('progressLabel');
+  if (pf) pf.style.width = pct + '%';
+  if (pl) pl.textContent = done.length + '/8';
+  buildEscada();
+  renderNotas();
+}
+
+function initCliente() {
+  const nome = clienteData.nomeFamilia || 'Família';
+  document.getElementById('heroBadge').textContent = '👨‍👩‍👧 ' + nome;
+  document.getElementById('heroDesc').textContent = 'Acompanhe o progresso de ' + (clienteData.nomeCrianca || 'seu filho(a)') + ' aqui.';
+  document.getElementById('heroSection').style.display = 'block';
+  document.getElementById('navWrapper').style.display = 'block';
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('fabBtn').style.display = 'flex';
+
+  const tabs = [
+    {id:'inicio',label:'🏠 Início'},
+    {id:'escada',label:'🪜 Escada'},
+    {id:'termometro',label:'🌡️ Termômetro'},
+    {id:'tecnicas',label:'💨 Técnicas'},
+    {id:'orientacoes',label:'📋 Orientações'},
+    {id:'imagens',label:'📸 Imagens'},
+    {id:'notas',label:'📝 Anotações'},
+  ];
+  buildNav(tabs);
+  buildClienteSections();
+  updateClienteUI();
+  hideLoading();
+}
+
+function buildClienteSections() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <section class="section active" id="sec-inicio">
+      <div class="section-header"><h2>🏠 Bem-vindo(a)!</h2><p>Acompanhe o progresso aqui</p></div>
+      <div class="progress-wrap">
+        <div class="progress-top"><span>Progresso na Escada</span><strong id="progressLabel">0/8</strong></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      </div>
+      <div class="card"><div class="card-accent" style="background:var(--purple)"></div>
+        <h2>🧠 O que é esse medo?</h2>
+        <p>O medo de urinar no vaso sanitário é <strong>muito comum</strong> em crianças de 2 a 7 anos. Com paciência e as técnicas certas, esse "alarme" aprende a se desligar.</p>
+      </div>
+      <div class="highlight teal"><strong>💡 Como usar este guia</strong>Navegue pelas abas. Marque os degraus conquistados na <b>Escada</b>. Use o <b>Termômetro</b> para medir a ansiedade. Registre as conquistas em <b>Anotações</b>.</div>
+      <div class="card"><div class="card-accent" style="background:var(--yellow)"></div>
+        <h2>⭐ Estrelas de hoje</h2>
+        <p style="margin-bottom:8px">Cada tentativa merece uma estrela!</p>
+        <div class="star-row" id="starRow">${[...Array(7)].map(()=>`<div class="star" onclick="toggleStar(this)">⭐</div>`).join('')}</div>
+      </div>
+      <div class="info-row"><div class="info-icon">❤️</div><p><strong>Lembre-se:</strong> Nunca force nem critique. Cada pequena tentativa é uma vitória enorme.</p></div>
+    </section>
+
+    <section class="section" id="sec-escada">
+      <div class="section-header"><h2>🪜 Escada da Coragem</h2><p>Toque em cada degrau quando conquistado!</p></div>
+      <div class="highlight purple"><strong>Como funciona?</strong>Só suba quando o degrau atual parecer fácil (nível 1-2 no termômetro). Não tenha pressa — alguns degraus levam vários dias.</div>
+      <div class="escada" id="escadaEl"></div>
+      <div class="btn-row"><button class="btn btn-outline" onclick="resetEscada()">🔄 Reiniciar</button></div>
+    </section>
+
+    <section class="section" id="sec-termometro">
+      <div class="section-header"><h2>🌡️ Termômetro do Medo</h2><p>Como está se sentindo agora?</p></div>
+      <div class="info-row"><div class="info-icon">💡</div><p>Pergunte: <em>"Em qual número você está agora?"</em></p></div>
+      <div class="card">
+        <div class="thermometer-wrap">
+          <div class="thermo-bar"><div class="thermo-fill" id="thermoFill" style="height:20%"></div></div>
+          <div class="thermo-levels" id="thermoLevels"></div>
+        </div>
+        <p style="text-align:center;margin-top:14px;font-family:'Nunito',sans-serif;font-weight:700;font-size:14px" id="thermoMsg">Toque em um nível ⬆️</p>
+      </div>
+      <div class="highlight yellow"><strong>🎯 O que fazer em cada nível</strong><b>1-2:</b> Ótimo para tentar o próximo degrau!<br><b>3:</b> Pratique respiração antes.<br><b>4:</b> Use o Lugar Seguro.<br><b>5:</b> Pause, acolha, tente amanhã.</div>
+    </section>
+
+    <section class="section" id="sec-tecnicas">
+      <div class="section-header"><h2>💨 Técnicas de Coping</h2><p>Toque para ver como fazer</p></div>
+      <div class="breathing-circle">Respire<br>comigo</div>
+      <div class="tecnicas-grid">
+        <div class="tecnica-card" style="background:var(--teal-pale)" onclick="toggleTecnica(this)"><span class="emoji">🦁</span><h3>Respiração do Leão</h3><p>Soltar tensão com diversão!</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Inspire contando até 4 🤫<br>2. Segure por 2 segundos ⏸<br>3. Expire: <b>"HAAA!"</b> 🦁<br>4. Repita 3 vezes.<br><br><em>💡 Faça junto — fica mais engraçado!</em></div></div>
+        <div class="tecnica-card" style="background:var(--purple-pale)" onclick="toggleTecnica(this)"><span class="emoji">🧸</span><h3>Barriga de Bolha</h3><p>Respiração com o bichinho</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Coloque o ursinho na barriga<br>2. Respire — barriga sobe = bolha 🫧<br>3. Solte devagar — bolha murcha<br>4. Repita 5 vezes.<br><br><em>💡 Quem fizer a maior bolha ganha!</em></div></div>
+        <div class="tecnica-card" style="background:var(--yellow-pale)" onclick="toggleTecnica(this)"><span class="emoji">🌈</span><h3>Lugar Seguro</h3><p>Um lugar mágico na imaginação</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Feche os olhos<br>2. Imagine um lugar incrível<br>3. O que você vê? Cheira? Ouve?<br>4. Fique lá por 1 minuto.<br><br><em>💡 Deixe a criança escolher!</em></div></div>
+        <div class="tecnica-card" style="background:var(--green-pale)" onclick="toggleTecnica(this)"><span class="emoji">🖐️</span><h3>5-4-3-2-1</h3><p>Foco no presente</p><div class="tecnica-expanded">👁️ 5 coisas que <b>vê</b><br>✋ 4 que pode <b>tocar</b><br>👂 3 que <b>ouve</b><br>👃 2 que <b>cheira</b><br>😋 1 que <b>gosta</b><br><br><em>💡 Use no nível 3 ou 4!</em></div></div>
+        <div class="tecnica-card" style="background:var(--pink-pale)" onclick="toggleTecnica(this)"><span class="emoji">🍜</span><h3>Espaguete Mágico</h3><p>Relaxamento muscular</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Fica duro como <b>espaguete cru</b>! 😬<br>2. Agora vira <b>espaguete cozido</b>! 😌<br>3. Mãos → ombros → rosto → pernas<br>4. Repita 2 vezes.<br><br><em>💡 Faça no tapete antes da tentativa!</em></div></div>
+        <div class="tecnica-card" style="background:var(--orange-pale)" onclick="toggleTecnica(this)"><span class="emoji">🎵</span><h3>Música do Xixi</h3><p>A música especial da família</p><div class="tecnica-expanded"><b>Como fazer:</b><br>1. Criem uma música boba juntos! 🎤<br>2. Cante enquanto senta no vaso<br>3. Pode ser qualquer melodia!<br><br><em>💡 Quanto mais engraçada, melhor!</em></div></div>
+      </div>
+    </section>
+
+    <section class="section" id="sec-orientacoes">
+      <div class="section-header"><h2>📋 Orientações para Pais</h2><p>Como apoiar sem reforçar o medo</p></div>
+      <div class="dos-donts">
+        <div class="do-col"><div class="col-title">✅ Faça isso</div><ul><li>Celebre qualquer tentativa</li><li>Fique perto (lado de fora)</li><li>Use linguagem encorajadora</li><li>Mantenha rotina de horários</li><li>Pratique as técnicas junto</li><li>Valide o sentimento da criança</li></ul></div>
+        <div class="dont-col"><div class="col-title">❌ Evite isso</div><ul><li>Forçar ou ameaçar</li><li>Comparar com outras crianças</li><li>Dizer "não tem nada a temer"</li><li>Punir acidentes ou choro</li><li>Demonstrar impaciência</li><li>Voltar ao pinico sem orientação</li></ul></div>
+      </div>
+      <div class="highlight orange"><strong>💬 O que dizer quando a criança recusa</strong>✅ "Tudo bem, a gente tenta de novo daqui a pouco."<br>✅ "Você foi muito corajoso(a) só de tentar."<br>✅ "Esse medo está ficando menor a cada dia."<br>❌ Evite: "Chega disso!" / "Que frescura!"</div>
+      <div class="card"><div class="card-accent" style="background:var(--green)"></div>
+        <h2>🏆 Sistema de Recompensas</h2>
+        <ul class="checklist">
+          <li><span class="check-icon green">1⭐</span><span>Entrar no banheiro sem choro</span></li>
+          <li><span class="check-icon green">2⭐</span><span>Sentar no vaso com roupa</span></li>
+          <li><span class="check-icon green">3⭐</span><span>Sentar no vaso sem roupa</span></li>
+          <li><span class="check-icon green">5⭐</span><span>Tentar urinar (mesmo sem conseguir)</span></li>
+          <li><span class="check-icon green">🌟</span><span>Urinar no vaso com apoio</span></li>
+          <li><span class="check-icon green">🏆</span><span>Urinar no vaso sozinho(a)!</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="sec-imagens">
+      <div class="section-header"><h2>📸 Imagens e Recursos</h2><p>Adicione fotos do progresso</p></div>
+      <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" multiple accept="image/*" onchange="handleFiles(event)">
+        <div class="upload-icon">📁</div>
+        <h3>Toque para adicionar imagens</h3>
+        <p>Fotos do progresso, quadro de estrelas, desenhos...</p>
+      </div>
+      <div class="images-grid" id="imagesGrid"></div>
+      <div class="divider"></div>
+      <div class="highlight purple"><strong>📌 Sugestões</strong>• Foto do banheiro com adesivos novos<br>• Quadro de estrelas da criança<br>• Desenho da Escada da Coragem<br>• Foto do ursinho de apoio</div>
+    </section>
+
+    <section class="section" id="sec-notas">
+      <div class="section-header"><h2>📝 Anotações da Família</h2><p>Registre conquistas e observações — a psicóloga verá tudo!</p></div>
+      <div class="sync-badge"><span class="sync-dot"></span>Sincronizado em tempo real</div>
+      <div style="margin-bottom:14px"><label class="note-label">📅 Data</label><input type="date" id="notaData" class="note-area" style="min-height:unset;height:42px"></div>
+      <div style="margin-bottom:14px">
+        <label class="note-label">🌡️ Nível de ansiedade hoje</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="nivelBtns">
+          ${[1,2,3,4,5].map(n=>`<button class="btn btn-outline" style="border-radius:10px;padding:8px 14px;font-size:13px" onclick="setNivel(${n},this)">${n} ${['😌','🙂','😟','😨','😱'][n-1]}</button>`).join('')}
+        </div>
+      </div>
+      <div style="margin-bottom:14px"><label class="note-label">📋 O que aconteceu hoje</label><textarea class="note-area" id="notaTexto" placeholder="Descreva as tentativas, reações, o que funcionou..."></textarea></div>
+      <div style="margin-bottom:14px"><label class="note-label">🌟 Uma conquista de hoje</label><textarea class="note-area" id="notaConquista" style="min-height:70px" placeholder="Ex: Entrou no banheiro sem chorar!"></textarea></div>
+      <div class="btn-row"><button class="btn btn-primary" onclick="salvarNota()">💾 Salvar anotação</button></div>
+      <div class="divider"></div>
+      <div id="notasSalvas"></div>
+    </section>
+  `;
+  buildThermo();
+}
+
+// ── PSICÓLOGA UI ─────────────────────────────────────
+async function initPsicologa() {
+  document.getElementById('heroBadge').textContent = '🏥 Painel da Psicóloga';
+  document.getElementById('heroDesc').textContent = 'Gerencie todos os seus clientes em um só lugar.';
+  document.getElementById('heroSection').style.display = 'block';
+  document.getElementById('navWrapper').style.display = 'block';
+  document.getElementById('mainContent').style.display = 'block';
+  document.getElementById('fabBtn').style.display = 'none';
+
+  const tabs = [{id:'painel',label:'📊 Painel'},{id:'novo',label:'➕ Novo Cliente'}];
+  buildNav(tabs);
+
+  const main = document.getElementById('mainContent');
+  main.innerHTML = `
+    <section class="section active" id="sec-painel">
+      <div class="painel-header"><h2>👩‍⚕️ Painel da Psicóloga</h2><p>Todos os seus clientes e progresso em tempo real</p></div>
+      <div id="clientesLista"><div style="text-align:center;color:var(--gray);padding:20px">Carregando clientes...</div></div>
+    </section>
+    <section class="section" id="sec-novo">
+      <div class="section-header"><h2>➕ Novo Cliente</h2><p>Criar acesso para uma nova família</p></div>
+      <div class="card">
+        <h2>👨‍👩‍👧 Dados da Família</h2>
+        <div style="margin-bottom:12px"><label class="note-label">Nome da família</label><input class="note-area" id="novoNome" placeholder="Ex: Família Silva" style="min-height:unset;height:44px"></div>
+        <div style="margin-bottom:12px"><label class="note-label">Código de acesso</label><input class="note-area" id="novoCodigo" placeholder="Ex: familia-silva (sem espaços)" style="min-height:unset;height:44px"></div>
+        <div style="margin-bottom:12px"><label class="note-label">Nome da criança</label><input class="note-area" id="novoCrianca" placeholder="Ex: João" style="min-height:unset;height:44px"></div>
+        <div style="margin-bottom:12px"><label class="note-label">Idade da criança</label><input class="note-area" id="novaIdade" placeholder="Ex: 5 anos" style="min-height:unset;height:44px"></div>
+        <div class="btn-row"><button class="btn btn-primary" onclick="criarCliente()">✅ Criar cliente</button></div>
+      </div>
+    </section>
+  `;
+  await carregarClientes();
+  hideLoading();
+}
+
+async function carregarClientes() {
+  try {
+    const snap = await getDocs(collection(db, 'clientes'));
+    const lista = document.getElementById('clientesLista');
+    if (snap.empty) {
+      lista.innerHTML = '<div style="text-align:center;padding:30px;color:var(--gray)"><div style="font-size:40px;margin-bottom:10px">👨‍👩‍👧</div><p>Nenhum cliente ainda.</p><p style="font-size:12px;margin-top:4px">Clique em "+ Novo Cliente" para começar.</p></div>';
+      return;
+    }
+    lista.innerHTML = '';
+    snap.forEach(d => {
+      const data = d.data();
+      const done = (data.degraus || []).length;
+      const pct = (done / 8) * 100;
+      const lastNota = data.notas && data.notas.length ? data.notas[data.notas.length-1] : null;
+      const card = document.createElement('div');
+      card.className = 'cliente-card';
+      card.innerHTML = `
+        <div class="cliente-card-top">
+          <span class="cliente-nome">👨‍👩‍👧 ${data.nomeFamilia || d.id}</span>
+          <span class="cliente-code">${d.id}</span>
+        </div>
+        <div style="font-size:12px;color:var(--gray);margin-bottom:8px">
+          👧 ${data.nomeCrianca || '—'} ${data.idade ? '· '+data.idade : ''}
+          ${lastNota ? ` · Última nota: ${lastNota.data||''}` : ''}
+        </div>
+        <div class="cliente-prog"><div class="cliente-prog-fill" style="width:${pct}%"></div></div>
+        <div class="cliente-meta"><span>Progresso: ${done}/8 degraus</span><span>${pct.toFixed(0)}%</span></div>`;
+      card.onclick = () => verCliente(d.id, data);
+      lista.appendChild(card);
+    });
+  } catch(e) {
+    document.getElementById('clientesLista').innerHTML = '<div style="color:var(--pink);padding:16px;font-size:13px">Erro ao carregar clientes.</div>';
+  }
+}
+
+window.verCliente = function(code, data) {
+  const notas = data.notas || [];
+  const degraus = data.degraus || [];
+  let html = `
+    <div class="modal-overlay open" id="clienteDetailModal" onclick="if(event.target.id==='clienteDetailModal')document.getElementById('clienteDetailModal').remove()">
+    <div class="modal" style="max-height:85vh;overflow-y:auto;border-radius:24px 24px 0 0;padding-bottom:40px">
+      <h3>👨‍👩‍👧 ${data.nomeFamilia || code}</h3>
+      <p>👧 ${data.nomeCrianca||'—'} · Código: <strong>${code}</strong></p>
+      <div style="margin:12px 0">
+        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px"><span>Progresso</span><span>${degraus.length}/8</span></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(degraus.length/8)*100}%"></div></div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;margin-bottom:8px;color:var(--dark)">🪜 Degraus conquistados</div>
+        ${DEGRAUS.map((d,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(0,0,0,0.05)">
+          <span style="width:20px;height:20px;border-radius:50%;background:${degraus.includes(i)?d.color:'#eee'};display:flex;align-items:center;justify-content:center;font-size:10px;color:white;font-weight:700;flex-shrink:0">${i+1}</span>
+          <span style="color:${degraus.includes(i)?'var(--dark)':'var(--gray)'}">${d.title}</span>
+          ${degraus.includes(i)?'<span style="margin-left:auto;color:var(--green);font-size:11px">✓</span>':''}
+        </div>`).join('')}
+      </div>
+      ${notas.length ? `
+        <div style="font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;margin-bottom:8px;color:var(--dark)">📝 Anotações da família (${notas.length})</div>
+        ${notas.slice().reverse().map(n=>`
+          <div style="background:var(--light);border-radius:12px;padding:12px;margin-bottom:8px;font-size:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+              <strong>${n.data||''}</strong>
+              ${n.nivel?`<span style="background:var(--purple-pale);color:var(--purple);padding:2px 8px;border-radius:50px;font-size:10px;font-weight:700">Nível ${n.nivel}</span>`:''}
+            </div>
+            ${n.texto?`<p style="margin-bottom:4px;color:var(--text)">${n.texto}</p>`:''}
+            ${n.conquista?`<div style="background:var(--yellow-pale);border-radius:8px;padding:6px 10px;margin-top:4px">⭐ <strong>${n.conquista}</strong></div>`:''}
+          </div>`).join('')}` : '<p style="font-size:12px;color:var(--gray);text-align:center;padding:12px">Nenhuma anotação ainda</p>'}
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="copiarLinkCliente('${code}');document.getElementById('clienteDetailModal').remove()" style="flex:1">📤 Copiar link</button>
+        <button class="btn btn-danger" onclick="excluirCliente('${code}')" style="flex:0">🗑️</button>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('clienteDetailModal').remove()">Fechar</button>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+};
+
+window.excluirCliente = async function(code) {
+  if (!confirm(`Excluir cliente "${code}"? Isso não pode ser desfeito.`)) return;
+  document.getElementById('clienteDetailModal')?.remove();
+  await setDoc(doc(db, 'clientes', code), {_deleted: true}); // soft delete
+  showToast('🗑️ Cliente removido');
+  await carregarClientes();
+};
+
+window.copiarLinkCliente = function(code) {
+  const link = window.location.href.split('?')[0] + '?code=' + code;
+  navigator.clipboard.writeText(link).then(()=>showToast('🔗 Link copiado!')).catch(()=>{
+    document.getElementById('shareLinkBox').textContent = link;
+    openModal('shareModal');
+  });
+};
+
+window.criarCliente = async function() {
+  const nome = document.getElementById('novoNome')?.value?.trim() || document.getElementById('novoClienteNome')?.value?.trim();
+  const codigo = (document.getElementById('novoCodigo')?.value?.trim() || document.getElementById('novoClienteCodigo')?.value?.trim() || '').toLowerCase().replace(/\s+/g,'-');
+  const crianca = document.getElementById('novoCrianca')?.value?.trim() || document.getElementById('novoClienteCrianca')?.value?.trim() || '';
+  const idade = document.getElementById('novaIdade')?.value?.trim() || '';
+  if (!nome || !codigo) { showToast('⚠️ Preencha nome e código!'); return; }
+  try {
+    await setDoc(doc(db, 'clientes', codigo), { nomeFamilia: nome, nomeCrianca: crianca, idade, degraus: [], notas: [], criadoEm: new Date().toISOString() });
+    showToast('✅ Cliente criado!');
+    const link = window.location.href.split('?')[0] + '?code=' + codigo;
+    document.getElementById('shareLinkBox').textContent = link;
+    openModal('shareModal');
+    if (document.getElementById('clientesLista')) await carregarClientes();
+  } catch(e) { showToast('❌ Erro ao criar. Tente novamente.'); }
+};
+
+// ── ESCADA ───────────────────────────────────────────
+function buildEscada() {
+  const el = document.getElementById('escadaEl');
+  if (!el) return;
+  const done = clienteData.degraus || [];
+  el.innerHTML = '';
+  DEGRAUS.forEach((d, i) => {
+    const isDone = done.includes(i);
+    const div = document.createElement('div');
+    div.className = 'degrau' + (isDone ? ' done' : '');
+    div.style.background = isDone ? '#F0FAF3' : '#FAFAFA';
+    div.style.borderColor = isDone ? d.color : 'transparent';
+    div.innerHTML = `<div class="degrau-inner">
+      <div class="degrau-num" style="background:${d.color}">${i+1}</div>
+      <div class="degrau-text">
+        <strong style="color:${isDone?d.color:'var(--dark)'}">${d.title}</strong>
+        <span>${d.sub}</span>
+      </div>
+      <div class="degrau-check" style="${isDone?`background:${d.color};border-color:${d.color}`:''}">
+        ${isDone ? '<span style="color:white">✓</span>' : ''}
+      </div>
+    </div>`;
+    div.onclick = () => toggleDegrau(i);
+    el.appendChild(div);
+  });
+}
+
+async function toggleDegrau(i) {
+  let done = [...(clienteData.degraus || [])];
+  if (done.includes(i)) done = done.filter(x => x !== i);
+  else {
+    done.push(i);
+    if (i === DEGRAUS.length - 1) confetti();
+    else showToast('🌟 Degrau conquistado!');
+  }
+  clienteData.degraus = done;
+  buildEscada();
+  updateClienteUI();
+  await updateDoc(doc(db, 'clientes', currentCode), { degraus: done });
+}
+
+window.resetEscada = async function() {
+  if (!confirm('Reiniciar todo o progresso?')) return;
+  clienteData.degraus = [];
+  buildEscada();
+  updateClienteUI();
+  await updateDoc(doc(db, 'clientes', currentCode), { degraus: [] });
+  showToast('🔄 Progresso reiniciado');
+};
+
+// ── TERMÔMETRO ────────────────────────────────────────
+function buildThermo() {
+  const el = document.getElementById('thermoLevels');
+  if (!el) return;
+  el.innerHTML = '';
+  THERMO.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'thermo-level';
+    div.style.background = t.color + '22';
+    div.style.color = t.color;
+    div.innerHTML = `<div class="thermo-dot" style="background:${t.color}"></div>
+      <div><div class="thermo-label" style="color:${t.color}">${t.nivel} — ${t.label}</div>
+      <div class="thermo-sub">${t.sub}</div></div>`;
+    div.onclick = () => {
+      document.querySelectorAll('.thermo-level').forEach(l=>l.classList.remove('selected'));
+      div.classList.add('selected');
+      document.getElementById('thermoFill').style.height = t.height;
+      document.getElementById('thermoMsg').textContent = t.msg;
+    };
+    el.appendChild(div);
+  });
+}
+
+// ── ANOTAÇÕES ─────────────────────────────────────────
+let nivelSelecionado = null;
+window.setNivel = function(n, btn) {
+  nivelSelecionado = n;
+  document.querySelectorAll('#nivelBtns button').forEach(b=>{ b.style.background='white'; b.style.color='var(--purple)'; });
+  btn.style.background='var(--purple)'; btn.style.color='white';
+};
+
+window.salvarNota = async function() {
+  const data = document.getElementById('notaData').value;
+  const texto = document.getElementById('notaTexto').value;
+  const conquista = document.getElementById('notaConquista').value;
+  if (!texto && !conquista) { showToast('✏️ Escreva algo antes!'); return; }
+  const nota = { data: data || new Date().toLocaleDateString('pt-BR'), nivel: nivelSelecionado, texto, conquista, ts: Date.now() };
+  const notas = [...(clienteData.notas || []), nota];
+  clienteData.notas = notas;
+  await updateDoc(doc(db, 'clientes', currentCode), { notas });
+  document.getElementById('notaTexto').value = '';
+  document.getElementById('notaConquista').value = '';
+  document.getElementById('notaData').value = '';
+  nivelSelecionado = null;
+  document.querySelectorAll('#nivelBtns button').forEach(b=>{ b.style.background='white'; b.style.color='var(--purple)'; });
+  renderNotas();
+  showToast('💾 Anotação salva e enviada à psicóloga!');
+};
+
+function renderNotas() {
+  const el = document.getElementById('notasSalvas');
+  if (!el) return;
+  const notas = clienteData.notas || [];
+  if (!notas.length) { el.innerHTML = '<p style="color:var(--gray);font-size:13px;text-align:center">Nenhuma anotação ainda</p>'; return; }
+  el.innerHTML = '<h3 style="font-family:Nunito;font-weight:800;margin-bottom:10px;font-size:15px">📋 Anotações salvas</h3>' +
+    [...notas].reverse().map(n=>`<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-family:Nunito;font-weight:700;font-size:12px;color:var(--purple)">${n.data}</span>
+        ${n.nivel?`<span style="background:var(--purple-pale);color:var(--purple);font-size:10px;font-weight:700;padding:2px 9px;border-radius:50px">Nível ${n.nivel}</span>`:''}
+      </div>
+      ${n.texto?`<p style="font-size:13px;margin-bottom:5px">${n.texto}</p>`:''}
+      ${n.conquista?`<div style="background:var(--yellow-pale);border-radius:9px;padding:7px 10px;font-size:12px;margin-top:5px">⭐ <strong>${n.conquista}</strong></div>`:''}
+    </div>`).join('');
+}
+
+// ── IMAGENS ───────────────────────────────────────────
+let images = [];
+window.handleFiles = function(e) {
+  Array.from(e.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      images.push({ id: Date.now()+Math.random(), src: ev.target.result, caption: file.name.replace(/\.[^.]+$/,'') });
+      renderImages();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+};
+
+function renderImages() {
+  const grid = document.getElementById('imagesGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  images.forEach(img => {
+    const div = document.createElement('div');
+    div.className = 'img-thumb';
+    div.innerHTML = `<img src="${img.src}" alt="${img.caption}">
+      <button class="img-remove" onclick="removeImage(${img.id})">✕</button>
+      <div class="img-label"><input class="img-caption-input" value="${img.caption}" placeholder="Legenda..." onclick="event.stopPropagation()" onchange="updateCaption(${img.id},this.value)"></div>`;
+    grid.appendChild(div);
+  });
+}
+window.removeImage = id => { images = images.filter(i=>i.id!==id); renderImages(); };
+window.updateCaption = (id,val) => { const img = images.find(i=>i.id===id); if(img) img.caption=val; };
+
+// ── TÉCNICAS ──────────────────────────────────────────
+window.toggleTecnica = el => {
+  const was = el.classList.contains('open');
+  document.querySelectorAll('.tecnica-card').forEach(c=>c.classList.remove('open'));
+  if (!was) el.classList.add('open');
+};
+
+// ── ESTRELAS ──────────────────────────────────────────
+window.toggleStar = el => el.classList.toggle('filled');
+
+// ── NAV ───────────────────────────────────────────────
+function buildNav(tabs) {
+  const nav = document.getElementById('navTabs');
+  nav.innerHTML = tabs.map((t,i)=>`<button class="tab-btn ${i===0?'active':''}" onclick="showTab('${t.id}')">${t.label}</button>`).join('');
+}
+
+window.showTab = function(id) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const sec = document.getElementById('sec-'+id);
+  if (sec) sec.classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.textContent.includes(id.charAt(0).toUpperCase()||b.getAttribute('onclick')?.includes(id))) {} });
+  // simpler: match by onclick
+  document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.getAttribute('onclick')===`showTab('${id}')`) b.classList.add('active'); });
+  window.scrollTo({top:0,behavior:'smooth'});
+  if (id==='painel') carregarClientes();
+};
+
+// ── SHARE ─────────────────────────────────────────────
+window.openShareModal = function() {
+  const link = window.location.href.split('?')[0] + (currentCode?'?code='+currentCode:'');
+  document.getElementById('shareLinkBox').textContent = link;
+  openModal('shareModal');
+};
+window.copiarLink = window.copiarLinkCliente = function(code) {
+  const link = window.location.href.split('?')[0] + '?code=' + (code||currentCode);
+  navigator.clipboard.writeText(link).then(()=>{ showToast('🔗 Link copiado!'); closeModal('shareModal'); }).catch(()=>showToast('Copie manualmente o link acima'));
+};
+
+// ── MODAL ─────────────────────────────────────────────
+window.openModal = id => document.getElementById(id).classList.add('open');
+window.closeModal = id => document.getElementById(id).classList.remove('open');
+
+// ── UTILS ─────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+window.showToast = showToast;
+
+function hideLoading() {
+  setTimeout(()=>document.getElementById('loadingScreen').classList.add('hide'), 400);
+}
+
+function confetti() {
+  showToast('🏆 PARABÉNS! META CONQUISTADA! 🎉');
+  const colors = ['#7C5CBF','#3BAFB8','#FFB830','#F06292','#4CAF7D'];
+  for (let i=0; i<50; i++) {
+    const d = document.createElement('div');
+    d.style.cssText = `position:fixed;width:9px;height:9px;border-radius:2px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}vw;top:-10px;z-index:9999;animation:fall ${1+Math.random()*2}s linear forwards`;
+    document.body.appendChild(d);
+    setTimeout(()=>d.remove(),3000);
+  }
+}
+
+// ── AUTO LOGIN BY URL ──────────────────────────────────
+const urlCode = new URLSearchParams(window.location.search).get('code');
+if (urlCode) {
+  document.getElementById('loginCode').value = urlCode;
+  window.fazerLogin();
+} else {
+  hideLoading();
+  document.getElementById('loginScreen').classList.add('show');
+}
+</script>
+</body>
+</html>
