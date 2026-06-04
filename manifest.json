@@ -1,0 +1,26 @@
+{
+  "name": "Escada da Coragem",
+  "short_name": "Escada",
+  "description": "Guia terapêutico TCC para crianças — Medo do vaso sanitário",
+  "start_url": "/guia-coragem/Index.html",
+  "scope": "/guia-coragem/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#7C5CBF",
+  "theme_color": "#7C5CBF",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f6bd.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f31f.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "medical"],
+  "lang": "pt-BR"
+}
