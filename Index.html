@@ -320,6 +320,15 @@
   .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .chart-bar { width: 100%; border-radius: 4px 4px 0 0; transition: height 0.5s; min-width: 8px; }
   .chart-bar-label { font-size: 9px; color: var(--gray); text-align: center; }
+  /* WHATSAPP */
+  .wa-btn { display: inline-flex; align-items: center; gap: 7px; background: #25D366; color: white; border: none; border-radius: 10px; padding: 9px 16px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 12px; cursor: pointer; transition: all 0.2s; text-decoration: none; }
+  .wa-btn:hover { background: #1ebe5d; transform: translateY(-1px); }
+  .wa-btn svg { width: 16px; height: 16px; fill: white; flex-shrink: 0; }
+  .welcome-box { background: linear-gradient(135deg, #25D366, #128C7E); border-radius: 14px; padding: 16px; margin-top: 12px; color: white; }
+  .welcome-box h4 { font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; margin-bottom: 8px; }
+  .welcome-msg { background: rgba(255,255,255,0.15); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.6; margin-bottom: 10px; white-space: pre-wrap; }
+  .copy-msg-btn { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: 11px; cursor: pointer; }
+
   .inactivity-banner { position: fixed; top: 0; left: 0; right: 0; background: var(--orange); color: white; text-align: center; padding: 10px; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 13px; z-index: 9998; display: none; }
 </style>
 <script>
@@ -832,6 +841,37 @@ window.verCliente = function(code, data) {
           <button class="chat-send-btn" onclick="responderFamilia('${code}')">➤</button>
         </div>
       </div>
+      <!-- WHATSAPP -->
+      <div class="welcome-box">
+        <h4>📲 Comunicação com a Família</h4>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <a class="wa-btn" href="https://api.whatsapp.com/send?text=${encodeURIComponent('Olá! Aqui está o link do guia terapêutico da '+data.nomeCrianca+': https://adanzenha.github.io/guia-coragem/Index.html?code='+code)}" target="_blank">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Enviar Link do Guia
+          </a>
+          <button class="wa-btn" onclick="enviarLembrete('${code}','${data.nomeFamilia||code}','${data.nomeCrianca||''}','${data.proximaSessao||''}')" style="background:#128C7E">
+            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Lembrete de Sessão
+          </button>
+        </div>
+        <div id="welcomeMsgBox-${code}">
+          <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-bottom:4px">📋 Mensagem de boas vindas (copie e envie):</div>
+          <div class="welcome-msg" id="welcomeMsg-${code}">Olá! 👋 Sou sua psicóloga e estou enviando o guia terapêutico especial para acompanhar o progresso de ${data.nomeCrianca||'seu filho(a)'}! 🌟
+
+🔗 Acesse aqui: https://adanzenha.github.io/guia-coragem/Index.html?code=${code}
+
+Neste guia você vai encontrar:
+✅ A Escada da Coragem com os degraus do tratamento
+🌡️ Termômetro do medo
+💨 Técnicas de respiração e relaxamento
+📝 Espaço para registrar conquistas
+💬 Chat direto comigo
+
+Qualquer dúvida, pode me chamar! 💜</div>
+          <button class="copy-msg-btn" onclick="copiarBoasVindas('${code}')">📋 Copiar mensagem</button>
+        </div>
+      </div>
+
       <!-- CHART -->
       <div class="chart-wrap" id="chartWrap-${code}"></div>
 
@@ -907,7 +947,36 @@ window.criarCliente = async function() {
     showToast('✅ Cliente criado!');
     const link = window.location.href.split('?')[0] + '?code=' + codigo;
     document.getElementById('shareLinkBox').textContent = link;
+    // Auto open WhatsApp with welcome message
+    const welcomeTxt = `Olá! 👋 Sou sua psicóloga e estou enviando o guia terapêutico especial para acompanhar o progresso de ${crianca||'seu filho(a)'}! 🌟
+
+🔗 Acesse aqui: ${link}
+
+Neste guia você vai encontrar:
+✅ A Escada da Coragem
+🌡️ Termômetro do medo
+💨 Técnicas de relaxamento
+📝 Espaço para conquistas
+💬 Chat direto comigo
+
+Qualquer dúvida, pode me chamar! 💜`;
+    document.getElementById('shareLinkBox').textContent = link;
+    // Show modal with WhatsApp option
+    const modal = document.getElementById('shareModal');
+    modal.querySelector('h3').textContent = '🎉 Cliente criado!';
+    modal.querySelector('p').textContent = 'Envie o link para a família agora:';
     openModal('shareModal');
+    // Add WhatsApp button if not exists
+    if (!document.getElementById('waNewClientBtn')) {
+      const waBtn = document.createElement('a');
+      waBtn.id = 'waNewClientBtn';
+      waBtn.className = 'wa-btn';
+      waBtn.style.cssText = 'width:100%;justify-content:center;margin-bottom:8px;border-radius:12px;padding:12px';
+      waBtn.href = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(welcomeTxt);
+      waBtn.target = '_blank';
+      waBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:18px;height:18px;fill:white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg> Enviar boas vindas no WhatsApp';
+      modal.querySelector('.login-btn').before(waBtn);
+    }
     if (document.getElementById('clientesLista')) await carregarClientes();
   } catch(e) { showToast('❌ Erro ao criar. Tente novamente.'); }
 };
@@ -1269,6 +1338,44 @@ window.salvarObsPrivada = async function(code) {
   const cid = document.getElementById('editCID-' + code)?.value || '';
   await updateDoc(doc(db, 'clientes', code), { obsClinica: obs, cid });
   showToast('🔒 Observações salvas!');
+};
+
+// ── WHATSAPP FUNCTIONS ───────────────────────────────
+window.enviarLembrete = function(code, familia, crianca, proximaSessao) {
+  let dataFormatada = '';
+  if (proximaSessao) {
+    const d = new Date(proximaSessao);
+    dataFormatada = d.toLocaleString('pt-BR', {
+      weekday: 'long', day: '2-digit', month: '2-digit',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+  const msg = proximaSessao
+    ? `Olá! 👋 Lembrando que a próxima sessão de ${crianca||'seu filho(a)'} está agendada para:
+
+📅 ${dataFormatada}
+
+Qualquer dúvida pode me chamar! 💜`
+    : `Olá! 👋 Lembrando de verificar o progresso de ${crianca||'seu filho(a)'} no guia:
+
+🔗 https://adanzenha.github.io/guia-coragem/Index.html?code=${code}
+
+Qualquer dúvida pode me chamar! 💜`;
+  window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(msg), '_blank');
+};
+
+window.copiarBoasVindas = function(code) {
+  const el = document.getElementById('welcomeMsg-' + code);
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => showToast('📋 Mensagem copiada!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = el.textContent;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('📋 Mensagem copiada!');
+  });
 };
 
 // ── INACTIVITY TIMER ──────────────────────────────────
