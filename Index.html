@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Escada da Coragem">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%237C5CBF'/%3E%3Ctext x='50' y='68' font-size='56' text-anchor='middle'%3E%E2%AD%90%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f31f.png">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -462,19 +462,42 @@ function playNotifSound() {
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-box">
-    <div class="login-emoji">🏥</div>
+  <div class="login-box" id="loginBox">
+    <div class="login-emoji">🌟</div>
     <h2>Escada da Coragem</h2>
-    <p>Digite o código da família ou entre como psicóloga</p>
-    <input class="login-input" id="loginCode" placeholder="Código (ex: familia-silva)" />
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;justify-content:flex-start">
-      <input type="checkbox" id="lembrarLogin" style="width:16px;height:16px;cursor:pointer;accent-color:#7C5CBF">
-      <label for="lembrarLogin" style="font-size:13px;color:var(--gray);cursor:pointer;font-weight:600">Lembrar meu acesso</label>
+    <p>Bem-vindo(a) ao sistema terapêutico TCC</p>
+
+    <!-- TABS -->
+    <div style="display:flex;background:var(--light);border-radius:12px;padding:4px;margin-bottom:20px;gap:4px">
+      <button id="btnTabFamilia" onclick="setLoginTab('familia')" style="flex:1;padding:9px;border:none;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;background:white;color:var(--purple);box-shadow:0 2px 8px rgba(0,0,0,0.1);transition:all 0.2s">👨‍👩‍👧 Família</button>
+      <button id="btnTabPsi" onclick="setLoginTab('psi')" style="flex:1;padding:9px;border:none;border-radius:9px;font-family:'Nunito',sans-serif;font-weight:800;font-size:13px;cursor:pointer;background:transparent;color:var(--gray);transition:all 0.2s">👩‍⚕️ Psicóloga</button>
     </div>
-    <button class="login-btn" onclick="fazerLogin()">✨ Entrar</button>
-    <div class="login-error" id="loginError">Código não encontrado. Verifique com a psicóloga.</div>
-    <hr class="login-divider">
-    <div class="login-code-hint">Psicóloga? Use o código exclusivo fornecido pela administração.</div>
+
+    <!-- FAMÍLIA -->
+    <div id="loginFamiliaDiv">
+      <label class="note-label">🔑 Código da família</label>
+      <input class="login-input" id="loginCode" placeholder="Ex: familia-silva" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+      <div style="display:flex;align-items:center;gap:8px;margin:10px 0 16px;justify-content:flex-start">
+        <input type="checkbox" id="lembrarLogin" style="width:16px;height:16px;cursor:pointer;accent-color:#7C5CBF">
+        <label for="lembrarLogin" style="font-size:13px;color:var(--gray);cursor:pointer;font-weight:600">Lembrar meu acesso</label>
+      </div>
+      <button class="login-btn" onclick="fazerLogin()">✨ Entrar</button>
+      <div class="login-error" id="loginError">Código não encontrado. Verifique com a psicóloga.</div>
+    </div>
+
+    <!-- PSICÓLOGA -->
+    <div id="loginPsiDiv" style="display:none">
+      <label class="note-label">📧 E-mail</label>
+      <input class="login-input" id="loginEmail" type="email" placeholder="rcabralcorrea@gmail.com" style="margin-bottom:12px" onkeydown="if(event.key==='Enter')document.getElementById('loginSenha').focus()"/>
+      <label class="note-label">🔒 Senha</label>
+      <div style="position:relative;margin-bottom:6px">
+        <input class="login-input" id="loginSenha" type="password" placeholder="Sua senha" style="padding-right:48px" onkeydown="if(event.key==='Enter')fazerLoginPsi()"/>
+        <button onclick="toggleSenhaVisivel()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:18px;line-height:1" id="btnVerSenha">👁️</button>
+      </div>
+      <div id="loginErroPsi" style="display:none;background:#FEE8E8;color:#E53935;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;margin-bottom:12px"></div>
+      <button class="login-btn" onclick="fazerLoginPsi()" id="btnLoginPsi" style="background:linear-gradient(135deg,#3A2D6B,#7C5CBF)">🔐 Entrar como Psicóloga</button>
+      <p style="text-align:center;font-size:11px;color:var(--gray);margin-top:12px">Problemas para entrar? Acesse o Firebase Console</p>
+    </div>
   </div>
 </div>
 
@@ -605,6 +628,7 @@ document.getElementById('iosBanner')?.querySelector('button')?.addEventListener(
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -618,6 +642,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // ── ESTADO ──────────────────────────────────────────
 let currentUser = null; // 'psicologa' | 'cliente'
@@ -726,17 +751,80 @@ const THERMO = [
 ];
 
 // ── LOGIN ────────────────────────────────────────────
+// ── LOGIN TAB SWITCHER ───────────────────────────────
+window.setLoginTab = function(tab) {
+  const isFamilia = tab === 'familia';
+  document.getElementById('loginFamiliaDiv').style.display = isFamilia ? 'block' : 'none';
+  document.getElementById('loginPsiDiv').style.display = isFamilia ? 'none' : 'block';
+  const btnF = document.getElementById('btnTabFamilia');
+  const btnP = document.getElementById('btnTabPsi');
+  btnF.style.background = isFamilia ? 'white' : 'transparent';
+  btnF.style.color = isFamilia ? 'var(--purple)' : 'var(--gray)';
+  btnF.style.boxShadow = isFamilia ? '0 2px 8px rgba(0,0,0,0.1)' : 'none';
+  btnP.style.background = isFamilia ? 'transparent' : 'white';
+  btnP.style.color = isFamilia ? 'var(--gray)' : 'var(--purple)';
+  btnP.style.boxShadow = isFamilia ? 'none' : '0 2px 8px rgba(0,0,0,0.1)';
+};
+
+// ── TOGGLE SENHA VISÍVEL ──────────────────────────────
+window.toggleSenhaVisivel = function() {
+  const input = document.getElementById('loginSenha');
+  const btn = document.getElementById('btnVerSenha');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁️'; }
+};
+
+// ── LOGIN PSICÓLOGA (Firebase Auth) ──────────────────
+window.fazerLoginPsi = async function() {
+  const email = document.getElementById('loginEmail')?.value.trim();
+  const senha = document.getElementById('loginSenha')?.value;
+  const erroEl = document.getElementById('loginErroPsi');
+  const btn = document.getElementById('btnLoginPsi');
+  if (!email || !senha) { erroEl.textContent = '⚠️ Preencha e-mail e senha.'; erroEl.style.display = 'block'; return; }
+  btn.textContent = '⏳ Entrando...'; btn.disabled = true; erroEl.style.display = 'none';
+  try {
+    await signInWithEmailAndPassword(auth, email, senha);
+  } catch (err) {
+    btn.textContent = '🔐 Entrar como Psicóloga'; btn.disabled = false;
+    let msg = '❌ Erro ao entrar. Tente novamente.';
+    if (['auth/user-not-found','auth/wrong-password','auth/invalid-credential'].includes(err.code)) msg = '❌ E-mail ou senha incorretos.';
+    if (err.code === 'auth/too-many-requests') msg = '⚠️ Muitas tentativas. Tente mais tarde.';
+    if (err.code === 'auth/invalid-email') msg = '⚠️ E-mail inválido.';
+    erroEl.textContent = msg; erroEl.style.display = 'block';
+  }
+};
+
+// ── LOGOUT PSICÓLOGA ──────────────────────────────────
+window.fazerLogoutPsi = async function() {
+  await signOut(auth);
+  currentUser = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('heroSection').style.display = 'none';
+  document.getElementById('navWrapper').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'none';
+  if (document.getElementById('loginEmail')) document.getElementById('loginEmail').value = '';
+  if (document.getElementById('loginSenha')) document.getElementById('loginSenha').value = '';
+  if (document.getElementById('loginErroPsi')) document.getElementById('loginErroPsi').style.display = 'none';
+  if (document.getElementById('btnLoginPsi')) { document.getElementById('btnLoginPsi').textContent = '🔐 Entrar como Psicóloga'; document.getElementById('btnLoginPsi').disabled = false; }
+  setLoginTab('familia');
+};
+
+// ── AUTH STATE OBSERVER ───────────────────────────────
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    currentUser = 'psicologa';
+    document.getElementById('loginScreen').style.display = 'none';
+    initPsicologa();
+    resetInactivity();
+  }
+});
+
 window.fazerLogin = async function(lembrar) {
   const code = document.getElementById('loginCode').value.trim().toLowerCase();
   if (!code) return;
   document.getElementById('loginError').style.display = 'none';
 
-  if (code === 'bieberlovato98') {
-    currentUser = 'psicologa';
-    currentCode = 'admin';
-    if (lembrar || document.getElementById('lembrarLogin')?.checked) {
-      localStorage.setItem('savedCode', 'psicologa-admin');
-    }
+  // Psicóloga login: now handled by Firebase Auth (see fazerLoginPsi)
     document.getElementById('loginScreen').classList.remove('show');
     initPsicologa();
     return;
@@ -1610,6 +1698,14 @@ function confetti() {
   }
 }
 
+// ── SECURITY NOTE ────────────────────────────────────
+// Firestore rules should be:
+// match /clientes/{id} {
+//   allow read, write: if request.auth != null && request.auth.token.email == 'rcabralcorrea@gmail.com'
+//     || resource == null; // allow family read via code check
+// }
+// For now rules allow all - update in Firebase Console > Firestore > Rules
+
 // ── CACHE & FILTER ───────────────────────────────────
 window.clientesCache = {};
 let mostrarArquivados = false;
@@ -2096,13 +2192,13 @@ let inactivityTimer, countdownTimer, inactivitySeconds = 0;
 const INACTIVITY_LIMIT = 30 * 60; // 30 min
 const WARNING_AT = 60; // show warning 60s before
 
-window.resetInactivity = function() {
+function resetInactivity() {
   inactivitySeconds = 0;
   document.getElementById('inactivityBanner').style.display = 'none';
   clearTimeout(inactivityTimer);
   clearInterval(countdownTimer);
   inactivityTimer = setTimeout(showInactivityWarning, (INACTIVITY_LIMIT - WARNING_AT) * 1000);
-};
+}
 
 function showInactivityWarning() {
   let secs = WARNING_AT;
