@@ -859,19 +859,37 @@ window.fazerLogin = async function(lembrar) {
   }
   document.getElementById('loginError').style.display = 'none';
 
+  let snap;
   try {
-    const snap = await db.collection('clientes').doc(code).get();
-    if (!snap.exists) {
-      hideLoading();
-      document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('loginScreen').classList.add('show');
-      document.getElementById('loginError').style.display = 'block';
-      localStorage.removeItem('savedCode');
-      return;
-    }
+    snap = await db.collection('clientes').doc(code).get();
+  } catch(e) {
+    console.error('[Login Família] Erro de conexão ao buscar cliente:', e);
+    hideLoading();
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginScreen').classList.add('show');
+    document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+
+  if (!snap.exists) {
+    hideLoading();
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('loginScreen').classList.add('show');
+    document.getElementById('loginError').textContent = '❌ Código não encontrado. Verifique e tente novamente.';
+    document.getElementById('loginError').style.display = 'block';
+    localStorage.removeItem('savedCode');
+    return;
+  }
+
+  try {
     currentUser = 'cliente';
     currentCode = code;
-    clienteData = snap.data();
+    clienteData = snap.data() || {};
+    // Normaliza campos que devem ser arrays (evita erro se vierem como objeto/null)
+    if (!Array.isArray(clienteData.degraus)) clienteData.degraus = [];
+    if (!Array.isArray(clienteData.notas))   clienteData.notas   = [];
+    if (!Array.isArray(clienteData.chat))    clienteData.chat    = [];
     if (lembrar || document.getElementById('lembrarLogin')?.checked) {
       localStorage.setItem('savedCode', code);
     }
@@ -881,10 +899,11 @@ window.fazerLogin = async function(lembrar) {
     listenCliente(code);
     listenChat(code);
   } catch(e) {
+    console.error('[Login Família] Erro ao montar a tela do cliente:', e);
     hideLoading();
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('loginScreen').classList.add('show');
-    document.getElementById('loginError').textContent = 'Erro de conexão. Tente novamente.';
+    document.getElementById('loginError').textContent = 'Erro ao carregar os dados. Detalhe: ' + (e.message || e);
     document.getElementById('loginError').style.display = 'block';
   }
 }
@@ -1595,7 +1614,8 @@ function listenChat(code) {
   if (chatUnsubscribe) chatUnsubscribe();
   chatUnsubscribe = db.collection('clientes').doc(code).onSnapshot(snap => {
     if (snap.exists) {
-      const msgs = snap.data().chat || [];
+      const raw = snap.data().chat;
+      const msgs = Array.isArray(raw) ? raw : [];
       renderChat(msgs);
     }
   });
