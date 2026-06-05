@@ -1696,6 +1696,21 @@ window.toggleTecnica = el => {
 // ── ESTRELAS ──────────────────────────────────────────
 window.toggleStar = el => el.classList.toggle('filled');
 
+// ── BUILD TÉCNICAS ────────────────────────────────────
+function buildTecnicas() {
+  const grid = document.getElementById('tecnicasGrid');
+  if (!grid) return;
+  const p = getProtocolo(clienteData);
+  const tecnicas = (p && Array.isArray(p.tecnicas)) ? p.tecnicas : [];
+  grid.innerHTML = tecnicas.map(t => `
+    <div class="tecnica-card" style="background:${t.bg || 'var(--purple-pale)'}" onclick="toggleTecnica(this)">
+      <span class="emoji">${t.emoji || '💡'}</span>
+      <h3>${t.title || ''}</h3>
+      <p>${t.desc || ''}</p>
+      <div class="tecnica-expanded">${t.como || ''}</div>
+    </div>`).join('');
+}
+
 // ── BUILD ORIENTACOES ─────────────────────────────────
 function buildOrientacoes() {
   const grid = document.getElementById('dosDontsGrid');
