@@ -860,7 +860,7 @@ window.fazerLogin = async function(lembrar) {
 
   try {
     const snap = await db.collection('clientes').doc(code).get();
-    if (!snap.exists()) {
+    if (!snap.exists) {
       hideLoading();
       document.getElementById('loginScreen').style.display = 'flex';
       document.getElementById('loginScreen').classList.add('show');
@@ -892,7 +892,7 @@ window.fazerLogin = async function(lembrar) {
 function listenCliente(code) {
   if (unsubscribe) unsubscribe();
   unsubscribe = db.collection('clientes').doc(code).onSnapshot(snap => {
-    if (snap.exists()) {
+    if (snap.exists) {
       clienteData = snap.data();
       updateClienteUI();
     }
@@ -1384,7 +1384,7 @@ Qualquer dúvida, pode me chamar! 💜</div>
     renderPsiChat(code, data.chat || []);
     // Listen for new messages in real-time
     const unsubModal = db.collection('clientes').doc(code).onSnapshot(snap => {
-      if (snap.exists()) {
+      if (snap.exists) {
         const chat = snap.data().chat || [];
         renderPsiChat(code, chat);
       }
@@ -1579,7 +1579,7 @@ let chatUnsubscribe = null;
 function listenChat(code) {
   if (chatUnsubscribe) chatUnsubscribe();
   chatUnsubscribe = db.collection('clientes').doc(code).onSnapshot(snap => {
-    if (snap.exists()) {
+    if (snap.exists) {
       const msgs = snap.data().chat || [];
       renderChat(msgs);
     }
